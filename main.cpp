@@ -90,10 +90,10 @@ lib_deps =
 
   int IRstate;                    // Lid Proximity Sensor state
 
-  Bounce debouncer1 = Bounce();   // bounce instance for SW1
-  Bounce debouncer2 = Bounce();   // bounce instance for SW3
-  Bounce debouncer3 = Bounce();   // bounce instance for SW3
-
+  Bounce debouncedSW1 = Bounce(); // Bounce instance for SW1
+  Bounce debouncedSW2 = Bounce(); // Bounce instance for SW3
+  Bounce debouncedSW3 = Bounce(); // Bounce instance for SW3
+  #define btn delay(500)          // Wait function following button detection
 
 // WASH AND CURE VARIABLES
   #define CureDefault 20
@@ -356,19 +356,25 @@ void cureDOWN()
 // EEPROM MENU ACTIONS
 void eepromMenu()
 {
-Serial.println("EEPROM Menu actions.");
+Serial.print("EEPROM Menu actions");
 readydisplay();                       // set the OLED display
 display.println("SW1-Reset");         // OLED status display
 display.println("SW2-Save");          // OLED status display
 display.print  ("SW3-Exit");          // OLED status display
-display.display();                    // OLED status display   
+display.display();                    // OLED status display  
+
+// NO DOUBLE-TAP
+  debouncedSW3.update(); delay(100); debouncedSW3.update(); delay(100); 
+
+Serial.println(".");
 lastTrigger = millis();               // reset the time trigger
-while ( (now - lastTrigger) < 60000)  // give one minute for a response
-  { debouncer1.update();  debouncer2.update();  debouncer3.update();   
+while ( (millis() - lastTrigger) < 60000)  // give one minute for a response
+  { 
+    debouncedSW1.update();  debouncedSW2.update();  debouncedSW3.update();   
   
     // SW1 - Reset Wash and Cure time to factory defauls
-    if (debouncer1.fell())
-    {
+    if (debouncedSW1.fell())
+    { btn;
       EEPROM.write(0, CureDefault);   // RESET CURE TIME
       WashValue = EEPROM.read(0);     // READ BACK CURE TIME
       EEPROM.write(1, WashDefault);   // RESET WASH TIME
@@ -385,8 +391,8 @@ while ( (now - lastTrigger) < 60000)  // give one minute for a response
     }
 
     // SW2 - Save current setting to EEPROM
-    if (debouncer2.fell())
-    {
+    if (debouncedSW2.fell())
+    { btn;
       EEPROM.commit();                // Commit changes to EEPROM
       
       readydisplay();                 // set the OLED display
@@ -399,11 +405,12 @@ while ( (now - lastTrigger) < 60000)  // give one minute for a response
     }
 
     // SW3 - Exit EEPROM menu
-    if (debouncer3.fell())
-    {
+    if (debouncedSW3.fell())
+    { btn;
       return; // exit this function
     }
   }
+  Serial.println("Exiting EEPROM Menu.");
 }
 
 
@@ -477,8 +484,8 @@ void handleEepromSave() {
   EEPROM.commit();
   readydisplay();                   // set the OLED display
   display.println("Wash&Cure");     // OLED status display
-  display.println("  times  ");      // OLED status display
-  display.print  ("  saved");      // OLED status display
+  display.println("  times  ");     // OLED status display
+  display.print  ("  saved");       // OLED status display
   display.display();                // OLED status display
   noteTrigger = millis() + 4000;
   handleRoot();
@@ -525,16 +532,16 @@ void setup()
     digitalWrite(FAN, LOW);                     // ! ! ! NEVER SET THIS HIGH ! MOSFET DAMAGE WILL OCCUR ! ! !
 
   pinMode(SW1, INPUT);                          // Set SW1 pin as an input
-    debouncer1.attach(SW1);                     // attach debouncer1 to SW1
-    debouncer1.interval(5);                     // 5 ms bounce interval
+    debouncedSW1.attach(SW1);                     // attach debouncedSW1 to SW1
+    debouncedSW1.interval(25);                    // 25 ms bounce interval
 
   pinMode(SW2, INPUT);                          // Set SW2 pin as an input
-    debouncer2.attach(SW2);                     // attach debouncer2 to SW2
-    debouncer2.interval(5);                     // 5 ms bounce interval 
+    debouncedSW2.attach(SW2);                     // attach debouncedSW2 to SW2
+    debouncedSW2.interval(25);                    // 25 ms bounce interval 
 
   pinMode(SW3, INPUT);                          // Set SW3 pin as an input
-    debouncer3.attach(SW3);                     // attach debouncer3 to SW3
-    debouncer3.interval(5);                     // 5 ms bounce interval
+    debouncedSW3.attach(SW3);                     // attach debouncedSW3 to SW3
+    debouncedSW3.interval(25);                    // 25 ms bounce interval
 
 
 // OLED INITIALIZATION
@@ -570,10 +577,10 @@ void setup()
 
 
 // WAIT FOR SW3(PIN 0) TO RETURN TO A NORMAL INPUT
-  debouncer3.update();
-  while (!debouncer3.fell()){
+  debouncedSW3.update();
+  while (!debouncedSW3.fell()){
     delay(100);
-    debouncer3.update();
+    debouncedSW3.update();
   }
 
   Serial.println("SETUP Complete.");
@@ -706,52 +713,52 @@ if (cureActive == true)
 ////////////////////////////
 
 // UPDATE THE BOUNCE INSTANCES
-debouncer1.update();  debouncer2.update();  debouncer3.update();   
+debouncedSW1.update();  debouncedSW2.update();  debouncedSW3.update();   
 
 
 // SW1 - Start cure function, or if a function is running - increase by one minute
-if (debouncer1.fell() && washActive == false && cureActive == false)
-  {
+if (debouncedSW1.fell() && washActive == false && cureActive == false)
+  { btn;
     cure();
   }
-    else if( debouncer1.fell() && washActive == true && cureActive == false &&WashValue < 20)
-      {
+    else if( debouncedSW1.fell() && washActive == true && cureActive == false &&WashValue < 20)
+      { btn;
       washUP();
       }
-        else if( debouncer1.fell() && cureActive == true && washActive == false && CureValue < 20)
-          {
+        else if( debouncedSW1.fell() && cureActive == true && washActive == false && CureValue < 20)
+          { btn;
           cureUP();
           }
 
 
 // SW2 - Start wash function, or if a function is running - decrease by one minute
-if (debouncer2.fell() && cureActive == false && washActive == false  )
-  {
+if (debouncedSW2.fell() && cureActive == false && washActive == false  )
+  { btn;
     wash();
   }
-    else if( debouncer2.fell() && cureActive == true && washActive == false && CureValue > 3)
-      {
+    else if( debouncedSW2.fell() && cureActive == true && washActive == false && CureValue > 3)
+      { btn;
       cureDOWN();
       }
-        else if( debouncer2.fell() && washActive == true && cureActive == false && WashValue > 3)
-          {
+        else if( debouncedSW2.fell() && washActive == true && cureActive == false && WashValue > 3)
+          { btn;
           washDOWN();
           }
 
 
 // SW3 - Stop any running function
-if (debouncer3.fell() && washActive == true && cureActive == false)
-  {
+if (debouncedSW3.fell() && washActive == true && cureActive == false)
+  { btn;
   washoff();
   }
-    else if( debouncer3.fell() && washActive == false && cureActive == true )
-      {
+    else if( debouncedSW3.fell() && washActive == false && cureActive == true )
+      { btn;
       cureoff();
       }
 
 // SW3 - If nothing is running, bring up the EEPROM menu
-if ( debouncer3.fell() && washActive == false && cureActive == false)
-  {
+if ( debouncedSW3.fell() && washActive == false && cureActive == false)
+  { btn;
     eepromMenu();
   }
 
