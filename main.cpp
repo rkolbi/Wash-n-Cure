@@ -418,7 +418,7 @@ while ( (now - lastTrigger) < 60000)  // give one minute for a response
 WebServer server(80);
 
 
-// INDEX PAGE ( / )
+// INDEX PAGE ( / ) HTML BODY
 const char* htmlIndex1 = "<html><head><meta name=viewport content='width=400'><style>A {text-decoration: none;} table, th, td { border: 0px; border-collapse: collapse; } th, td { padding: 15px; text-align: center; } #t01 { width:400px; }</style></head><body><center><h2>Wash & Cure</h2><h5>revision 0.4</h5><br><br><table id='t01'><tr><th>Wash Time</th><th></th><th>Cure Time</th></tr><tr><td>&#x2206 <a href='wu'>UP</a> &#x2206</td><td></td><td>&#x2206 <a href='cu'>UP</a> &#x2206</td></tr><tr><td><b>";
     // Server inserts WashValue here
 const char* htmlIndex2 = "</b></td><td>&#x21AF <a href='es'>Save Times</a> &#x21AF</td><td><b>";
@@ -466,22 +466,22 @@ void handleStopAll() {
 }
 
 
+// 404 - NOT FOUND WEB RESPONSE
+void handleNotFound() {
+  server.send(404, "text/plain", "404: Page does not exist.\n\n");
+}
+
+
 // EepromSave WEB RESPONSE
 void handleEepromSave() {
   EEPROM.commit();
   readydisplay();                   // set the OLED display
   display.println("Wash&Cure");     // OLED status display
-  display.println("saving  ");      // OLED status display
-  display.print  ("settings");      // OLED status display
+  display.println("  times  ");      // OLED status display
+  display.print  ("  saved");      // OLED status display
   display.display();                // OLED status display
   noteTrigger = millis() + 4000;
   handleRoot();
-}
-
-
-// 404 - NOT FOUND WEB RESPONSE
-void handleNotFound() {
-  server.send(404, "text/plain", "404: Page does not exist.\n\n");
 }
 
 
@@ -503,37 +503,38 @@ void setup()
 
 // INITIALIZE EEPROM
   EEPROM.begin(EEPROM_SIZE);
-  WashValue = EEPROM.read(0);
-  CureValue = EEPROM.read(1);
+  WashValue = EEPROM.read(0);                   // Read WashValue from EEPROM location 0
+  CureValue = EEPROM.read(1);                   // Read CureValue from EEPROM location 1
 
 
 // SET UP STEPPER CONTROL
-  stepper.setMaxSpeed(8000);
-  stepper.setAcceleration(100);
-  stepper.moveTo(50000);
+  stepper.setMaxSpeed(8000);                    // Set max stepper speed to 8000
+  stepper.setAcceleration(100);                 // Set stepper acceleration to 100
 
 
 // DEFINE GPIO FUNCTIONS
-  pinMode(PROX, INPUT);
-  pinMode(motorEnable, OUTPUT);
-  pinMode(UVLED, OUTPUT);
-  pinMode(FAN, OUTPUT);
+  pinMode(PROX, INPUT);                         // Set PROX pin as an input
 
-  pinMode(SW1, INPUT);       // set SW1 pin to input
-  debouncer1.attach(SW1);    // attach debouncer1 to SW1
-  debouncer1.interval(5);    // 5 ms bounce interval
+  pinMode(motorEnable, OUTPUT);                 // Set motorEnable pin as an output
+    digitalWrite(motorEnable, LOW);             // Turn motor off
+  
+  pinMode(UVLED, OUTPUT);                       // Set UVLED pin as an output
+    digitalWrite(UVLED, LOW);                   // ! ! ! NEVER SET THIS HIGH ! MOSFET DAMAGE WILL OCCUR ! ! !
+  
+  pinMode(FAN, OUTPUT);                         // Set FAN pin as an output
+    digitalWrite(FAN, LOW);                     // ! ! ! NEVER SET THIS HIGH ! MOSFET DAMAGE WILL OCCUR ! ! !
 
-  pinMode(SW2, INPUT);       // set SW2 pin to input
-  debouncer2.attach(SW2);    // attach debouncer2 to SW2
-  debouncer2.interval(5);    // 5 ms bounce interval 
+  pinMode(SW1, INPUT);                          // Set SW1 pin as an input
+    debouncer1.attach(SW1);                     // attach debouncer1 to SW1
+    debouncer1.interval(5);                     // 5 ms bounce interval
 
-  pinMode(SW3, INPUT);       // set SW3 pin to input
-  debouncer3.attach(SW3);    // attach debouncer3 to SW3
-  debouncer3.interval(5);    // 5 ms bounce interval
+  pinMode(SW2, INPUT);                          // Set SW2 pin as an input
+    debouncer2.attach(SW2);                     // attach debouncer2 to SW2
+    debouncer2.interval(5);                     // 5 ms bounce interval 
 
-  digitalWrite(motorEnable, LOW);  // set motor to off
-  digitalWrite(UVLED, LOW);  // ! ! ! NEVER SET THIS HIGH ! MOSFET DAMAGE WILL OCCUR ! ! !
-  digitalWrite(FAN, LOW); // ! ! ! NEVER SET THIS HIGH ! MOSFET DAMAGE WILL OCCUR ! ! !
+  pinMode(SW3, INPUT);                          // Set SW3 pin as an input
+    debouncer3.attach(SW3);                     // attach debouncer3 to SW3
+    debouncer3.interval(5);                     // 5 ms bounce interval
 
 
 // OLED INITIALIZATION
@@ -543,18 +544,13 @@ void setup()
     Serial.println(F("SSD1306 allocation failed"));
     for(;;);
   }
-  delay(2000);
+
   readydisplay();                   // set the OLED display
   display.println("Wash&Cure");     // OLED status display
   display.println(" ");             // OLED status display
   display.print  (" rev 0.4");      // OLED status display
   display.display();                // OLED status display
   noteTrigger = millis() + 4000;
-
-
-// SET UP STEPPER CONTROL
-  stepper.setMaxSpeed(8000);
-  stepper.setAcceleration(100);
 
 
 // WEB PAGE CONFIGURATIONS
@@ -571,6 +567,16 @@ void setup()
 
   server.begin();
   Serial.println("HTTP server started");
+
+
+// WAIT FOR SW3(PIN 0) TO RETURN TO A NORMAL INPUT
+  debouncer3.update();
+  while (!debouncer3.fell()){
+    delay(100);
+    debouncer3.update();
+  }
+
+  Serial.println("SETUP Complete.");
 
 }
 
@@ -621,11 +627,11 @@ if (cureActive == true && millis() > noteTrigger)
 // OLED STATUS CHECK - READY
 if (cureActive == false && washActive == false && IRstate == LOW && millis() > noteTrigger)
 {
-  readydisplay();                   // set the OLED display
-  display.println("Wash&Cure");     // OLED status display
-  display.println(" ");             // OLED status display
-  display.print  ("  Ready");       // OLED status display
-  display.display();                // OLED status display
+  readydisplay();                         // set the OLED display
+  display.println("Wash&Cure");           // OLED status display
+  display.println(" ");                   // OLED status display
+  display.print  ("  Ready");             // OLED status display
+  display.display();                      // OLED status display
 }
 
 
