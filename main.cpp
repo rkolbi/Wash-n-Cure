@@ -410,7 +410,7 @@ while ( (millis() - lastTrigger) < 60000)  // give one minute for a response
       return; // exit this function
     }
   }
-  Serial.println("Exiting EEPROM Menu.");
+  Serial.println("Timed-out of EEPROM Menu.");
 }
 
 
