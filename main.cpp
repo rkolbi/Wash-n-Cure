@@ -107,7 +107,7 @@ lib_deps =
 
 
 // TIMING VARIABLES
-  unsigned long now = millis();
+  #define now millis()  
   unsigned long lastTrigger = 0;
   unsigned long noteTrigger = 0;
 
@@ -172,7 +172,7 @@ void wash()
 
   washSeconds = WashValue*60 ;      // calculate wash seconds from WashValue (minutes)
   washActive = true;                // set wash state to true
-  lastTrigger = millis();           // reset the time trigger
+  lastTrigger = now;                // reset the time trigger
   digitalWrite(FAN, HIGH);          // turn on the fan
   digitalWrite(motorEnable, HIGH);  // enable the motor
   stepper.setSpeed(8000);           // set the motor speed
@@ -185,7 +185,7 @@ void wash()
   display.println("Starting");      // OLED status display
   display.print("  Wash");          // OLED status display
   display.display();                // OLED status display
-  noteTrigger = millis() + 2000;
+  noteTrigger = now + 2000;
   return;
 }
 
@@ -200,7 +200,7 @@ void cure()
 
   uvSeconds = CureValue*60 ;        // calculate wash seconds from CureValue (minutes)
   cureActive = true;                // set cure state to true
-  lastTrigger = millis();           // reset the time trigger
+  lastTrigger = now;                // reset the time trigger
   digitalWrite(FAN, HIGH);          // turn on the fan
   digitalWrite(motorEnable, HIGH);  // enable the motor
   digitalWrite(UVLED, HIGH);        // turn on the UV lamp
@@ -211,7 +211,7 @@ void cure()
   display.println("Starting");      // OLED status display
   display.print("  Cure");          // OLED status display
   display.display();                // OLED status display
-  noteTrigger = millis() + 2000;
+  noteTrigger = now + 2000;
   return;
 }
 
@@ -229,7 +229,7 @@ void washoff()
   display.println("Washing");       // OLED status display
   display.print(" Done!");          // OLED status display
   display.display();                // OLED status display
-  noteTrigger = millis() + 2000;
+  noteTrigger = now + 2000;
   return;
 }
 
@@ -248,7 +248,7 @@ void cureoff()
   display.println("Curing ");       // OLED status display
   display.print(" Done!");          // OLED status display
   display.display();                // OLED status display
-  noteTrigger = millis() + 2000;
+  noteTrigger = now + 2000;
   return;
 }
 
@@ -268,7 +268,7 @@ void StopAll()
   display.println("  open!  ");     // OLED status display
   display.print  ("");              // OLED status display
   display.display();                // OLED status display
-  noteTrigger = millis() + 4000;
+  noteTrigger = now + 4000;
   return;
 }
 
@@ -289,7 +289,7 @@ void washUP()
     display.println("Wash time:");    // OLED status display
     display.print(WashValue);         // OLED status display
     display.display();                // OLED status display
-  noteTrigger = millis() + 2000;
+  noteTrigger = now + 2000;
 }
 
 
@@ -309,7 +309,7 @@ void washDOWN()
     display.println("Wash time:");    // OLED status display
     display.print(WashValue);         // OLED status display
     display.display();                // OLED status display
-  noteTrigger = millis() + 2000;
+  noteTrigger = now + 2000;
 }
 
 
@@ -329,7 +329,7 @@ void cureUP()
     display.println("Cure time:");    // OLED status display
     display.print(CureValue);         // OLED status display
     display.display();                // OLED status display
-  noteTrigger = millis() + 2000;
+  noteTrigger = now + 2000;
 }
 
 
@@ -349,7 +349,7 @@ void cureDOWN()
     display.println("Cure time:");    // OLED status display
     display.print(CureValue);         // OLED status display
     display.display();                // OLED status display
-  noteTrigger = millis() + 2000;
+  noteTrigger = now + 2000;
 }
 
 
@@ -367,8 +367,8 @@ display.display();                    // OLED status display
   debouncedSW3.update(); delay(100); debouncedSW3.update(); delay(100); 
 
 Serial.println(".");
-lastTrigger = millis();               // reset the time trigger
-while ( (millis() - lastTrigger) < 60000)  // give one minute for a response
+lastTrigger = now;                    // reset the time trigger
+while ( (now - lastTrigger) < 60000)  // give one minute for a response
   { 
     debouncedSW1.update();  debouncedSW2.update();  debouncedSW3.update();   
   
@@ -386,7 +386,7 @@ while ( (millis() - lastTrigger) < 60000)  // give one minute for a response
       display.println(" EEPROM  ");   // OLED status display
       display.print  (" RESET!  ");   // OLED status display
       display.display();              // OLED status display
-      noteTrigger = millis() + 2000;
+      noteTrigger = now + 2000;
       return; // exit this function
     }
 
@@ -400,7 +400,7 @@ while ( (millis() - lastTrigger) < 60000)  // give one minute for a response
       display.println(" EEPROM  ");   // OLED status display
       display.print  (" !SAVED! ");   // OLED status display
       display.display();              // OLED status display
-      noteTrigger = millis() + 2000;
+      noteTrigger = now + 2000;
       return; // exit this function
     }
 
@@ -487,7 +487,7 @@ void handleEepromSave() {
   display.println("  times  ");     // OLED status display
   display.print  ("  saved");       // OLED status display
   display.display();                // OLED status display
-  noteTrigger = millis() + 4000;
+  noteTrigger = now + 4000;
   handleRoot();
 }
 
@@ -532,16 +532,16 @@ void setup()
     digitalWrite(FAN, LOW);                     // ! ! ! NEVER SET THIS HIGH ! MOSFET DAMAGE WILL OCCUR ! ! !
 
   pinMode(SW1, INPUT);                          // Set SW1 pin as an input
-    debouncedSW1.attach(SW1);                     // attach debouncedSW1 to SW1
-    debouncedSW1.interval(25);                    // 25 ms bounce interval
+    debouncedSW1.attach(SW1);                   // attach debouncedSW1 to SW1
+    debouncedSW1.interval(25);                  // 25 ms bounce interval
 
   pinMode(SW2, INPUT);                          // Set SW2 pin as an input
-    debouncedSW2.attach(SW2);                     // attach debouncedSW2 to SW2
-    debouncedSW2.interval(25);                    // 25 ms bounce interval 
+    debouncedSW2.attach(SW2);                   // attach debouncedSW2 to SW2
+    debouncedSW2.interval(25);                  // 25 ms bounce interval 
 
   pinMode(SW3, INPUT);                          // Set SW3 pin as an input
-    debouncedSW3.attach(SW3);                     // attach debouncedSW3 to SW3
-    debouncedSW3.interval(25);                    // 25 ms bounce interval
+    debouncedSW3.attach(SW3);                   // attach debouncedSW3 to SW3
+    debouncedSW3.interval(25);                  // 25 ms bounce interval
 
 
 // OLED INITIALIZATION
@@ -557,7 +557,7 @@ void setup()
   display.println(" ");             // OLED status display
   display.print  (" rev 0.4");      // OLED status display
   display.display();                // OLED status display
-  noteTrigger = millis() + 4000;
+  noteTrigger = now + 4000;
 
 
 // WEB PAGE CONFIGURATIONS
@@ -597,10 +597,6 @@ void setup()
 
 void loop()
 {
-// UPDATE THE NOW
-now = millis();  
-
-
 // RUN OTA UPDATE SERVICE  
 webota.handle();
 
@@ -610,7 +606,7 @@ server.handleClient();
 
 
 // OLED STATUS CHECK - WASHING
-if (washActive == true && millis() > noteTrigger)
+if (washActive == true && now > noteTrigger)
 {
   readydisplay();                         // set the OLED display
   display.println("Washing...");          // OLED status display
@@ -621,7 +617,7 @@ if (washActive == true && millis() > noteTrigger)
 
 
 // OLED STATUS CHECK - CURING
-if (cureActive == true && millis() > noteTrigger)
+if (cureActive == true && now > noteTrigger)
 {
   readydisplay();                         // set the OLED display
   display.println("Curing...");           // OLED status display
@@ -632,7 +628,7 @@ if (cureActive == true && millis() > noteTrigger)
 
 
 // OLED STATUS CHECK - READY
-if (cureActive == false && washActive == false && IRstate == LOW && millis() > noteTrigger)
+if (cureActive == false && washActive == false && IRstate == LOW && now > noteTrigger)
 {
   readydisplay();                         // set the OLED display
   display.println("Wash&Cure");           // OLED status display
