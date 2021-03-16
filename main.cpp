@@ -1,28 +1,32 @@
 /*
-/////////////////////////////////////////
-////// Wash-n-Cure Rev 0.4 (ALPHA) ////// 
-/////////////////////////////////////////
+///////////////////////////////////////////
+////// Wash-n-Cure Rev 0.4.1 (ALPHA) ////// 
+///////////////////////////////////////////
 
 
 -AP hard coded to SSID: "Wash-n-Cure", Password: "password", IP: 10.0.1.1
 
 -Over the Air (OTA) firmware updating, access via index page (10.0.1.1).
 
--Simple web interface to change wash and cure times, commit new times to EEPROM, OTA firmware update (.BIN file), and stop all functions.
+-Simple web interface to change wash and cure times, commit new times to EEPROM, OTA firmware update (.BIN
+  file), and stop all functions.
 
 -Button functions as: 
          When no functions are active: SW1 = Starts Cure        SW2 = Starts Wash       SW3 = EEPROM Menu
          Wash or Cure active:          SW1 = Run time +1        SW2 = Run time -1       SW3 = Stops function
 
--No times changes are fully committed to EEPROM (reboot will revert back) unless the 'Save Times' function is selected from the web interface or from EEPROM menu.
+-No times changes are fully committed to EEPROM (reboot will revert back) unless the 'Save Times' function is
+  selected from the web interface or from EEPROM menu.
    EEPROM Menu: (User has one minute to make selection, else it exits the menu loop)
 	-SW1 will eeprom.write wash/cure time to 'factory defaults'
 	-SW2 will eeprom.write wash/cure times if they differ the eeprom.read.
 	-SW3 will cancel the menu, returning to 'Ready'
 
 -Wash and Cure functins use different stepper motor controls. 
-   -Cure uses the "stepper.setSpeed(500)" and requires "stepper.runSpeed()" to keep moving - yeilding a constants turning motor.
-   -Wash uses "stepper.moveTo(washSteps)", steps to move set by "int washSteps = 2000;", and requires "stepper.run();" to keep moving - allowing the motor to have directional change.
+   -Cure uses the "stepper.setSpeed(500)" and requires "stepper.runSpeed()" to keep moving - yeilding a
+     constants turning motor.
+   -Wash uses "stepper.moveTo(washSteps)", steps to move set by "int washSteps = 2000;", and requires
+     "stepper.run();" to keep moving - allowing the motor to have directional change.
 
 -=-=-
 
@@ -34,10 +38,13 @@ To do:
 
   During wash or cure cycle - have SW3 or Interlock initiate pause function.
 	-OLED write Paused.
-	-Pause state to calculate time left and store it in timePause. On resume, this time will be added to now and the cycle will run until completion.
+	-Pause state to calculate time left and store it in timePause. On resume, this time will be added to
+          now and the cycle will run until completion.
 	-Pasue will stop motor, LED, and fan.
-	-Pressing SW3 while in Pause state will hard stop the running function and return to 'Ready'. This means a double-press will hard stop the cycle.
-	-Pressing SW1 or SW2 while continue with cycle unless Interlock is open. If Interlock is open, SW1 & SW2 will be ignored.
+	-Pressing SW3 while in Pause state will hard stop the running function and return to 'Ready'. This
+          means a double-press will hard stop the cycle.
+	-Pressing SW1 or SW2 while continue with cycle unless Interlock is open. If Interlock is open, SW1 &
+          SW2 will be ignored.
 
 -=-=-
 
@@ -155,10 +162,10 @@ lib_deps =
 // READY THE OLED DISPLAY
 void readydisplay()
 {
-  display.clearDisplay();       // clear the OLED display
-  display.setTextSize(2);       // set text size for display
-  display.setTextColor(WHITE);  // set text color for display
-  display.setCursor(0, 10);     // position the cursor
+  display.clearDisplay();           // Clear the OLED display
+  display.setTextSize(2);           // Set text size for display
+  display.setTextColor(WHITE);      // Set text color for display
+  display.setCursor(0, 10);         // Position the cursor
 }
 
 
@@ -170,18 +177,18 @@ void wash()
   Serial.print("Wash value from memory: ");
   Serial.println(WashValue);
 
-  washSeconds = WashValue*60 ;      // calculate wash seconds from WashValue (minutes)
-  washActive = true;                // set wash state to true
-  lastTrigger = now;                // reset the time trigger
-  digitalWrite(FAN, HIGH);          // turn on the fan
-  digitalWrite(motorEnable, HIGH);  // enable the motor
-  stepper.setSpeed(8000);           // set the motor speed
-  stepper.setAcceleration(100);     // set the stepper acceleration
-  stepper.setCurrentPosition(0);    // set starting position as 0
-  stepper.moveTo(washSteps);        // move stepper x steps
-  washDirection = true;             // motor moves clockwise
+  washSeconds = WashValue*60 ;      // Calculate wash seconds from WashValue (minutes)
+  washActive = true;                // Set wash state to true
+  lastTrigger = now;                // Reset the time trigger
+  digitalWrite(FAN, HIGH);          // Turn on the fan
+  digitalWrite(motorEnable, HIGH);  // Enable the motor
+  stepper.setSpeed(8000);           // Set the motor speed
+  stepper.setAcceleration(100);     // Set the stepper acceleration
+  stepper.setCurrentPosition(0);    // Set starting position as 0
+  stepper.moveTo(washSteps);        // Move stepper x steps
+  washDirection = true;             // Motor moves clockwise
 
-  readydisplay();                   // set the OLED display
+  readydisplay();                   // Set the OLED display
   display.println("Starting");      // OLED status display
   display.print("  Wash");          // OLED status display
   display.display();                // OLED status display
@@ -198,16 +205,16 @@ void cure()
   Serial.println("Cure value from memory");
   Serial.println(CureValue);
 
-  uvSeconds = CureValue*60 ;        // calculate wash seconds from CureValue (minutes)
-  cureActive = true;                // set cure state to true
-  lastTrigger = now;                // reset the time trigger
-  digitalWrite(FAN, HIGH);          // turn on the fan
-  digitalWrite(motorEnable, HIGH);  // enable the motor
-  digitalWrite(UVLED, HIGH);        // turn on the UV lamp
-  stepper.setSpeed(500);            // set the motor speed
-  stepper.runSpeed();               // start the motor
+  uvSeconds = CureValue*60 ;        // Calculate wash seconds from CureValue (minutes)
+  cureActive = true;                // Set cure state to true
+  lastTrigger = now;                // Reset the time trigger
+  digitalWrite(FAN, HIGH);          // Turn on the fan
+  digitalWrite(motorEnable, HIGH);  // Enable the motor
+  digitalWrite(UVLED, HIGH);        // Turn on the UV lamp
+  stepper.setSpeed(500);            // Set the motor speed
+  stepper.runSpeed();               // Start the motor
   
-  readydisplay();                   // set the OLED display
+  readydisplay();                   // Set the OLED display
   display.println("Starting");      // OLED status display
   display.print("  Cure");          // OLED status display
   display.display();                // OLED status display
@@ -219,13 +226,13 @@ void cure()
 // STOP THE WASH FUNCTION
 void washoff()
 {
-  digitalWrite(FAN, LOW);           // turn off the fan
-  digitalWrite(motorEnable, LOW);   // turn off the motor
+  digitalWrite(FAN, LOW);           // Turn off the fan
+  digitalWrite(motorEnable, LOW);   // Turn off the motor
   
-  washActive = false;               // set wash state to false
+  washActive = false;               // Set wash state to false
   Serial.println("Wash Cycle Finished! Returning to main loop");
 
-  readydisplay();                   // set the OLED display
+  readydisplay();                   // Set the OLED display
   display.println("Washing");       // OLED status display
   display.print(" Done!");          // OLED status display
   display.display();                // OLED status display
@@ -237,14 +244,14 @@ void washoff()
 // STOP THE CURE FUNCTION
 void cureoff()
 {
-  digitalWrite(FAN, LOW);           // turn off the fan
-  digitalWrite(motorEnable, LOW);   // turn off the motor
-  digitalWrite(UVLED, LOW);         // turn off UV
+  digitalWrite(FAN, LOW);           // Turn off the fan
+  digitalWrite(motorEnable, LOW);   // Turn off the motor
+  digitalWrite(UVLED, LOW);         // Turn off UV
   
-  cureActive = false;               // set cure state to false
+  cureActive = false;               // Set cure state to false
   Serial.println("UV Cycle Finished! Returning to main loop");
 
-  readydisplay();                   // set the OLED display
+  readydisplay();                   // Set the OLED display
   display.println("Curing ");       // OLED status display
   display.print(" Done!");          // OLED status display
   display.display();                // OLED status display
@@ -256,19 +263,19 @@ void cureoff()
 // STOP ALL WASH AND CURE FUNCTION
 void StopAll()
 {
-  digitalWrite(FAN, LOW);           // turn off the fan
-  digitalWrite(UVLED, LOW);         // turn off UV
-  digitalWrite(motorEnable, LOW);   // turn off the motor
-  cureActive = false;               // set cure state to false
-  washActive = false;               // set wash state to false
+  digitalWrite(FAN, LOW);           // Turn off the fan
+  digitalWrite(UVLED, LOW);         // Turn off UV
+  digitalWrite(motorEnable, LOW);   // Turn off the motor
+  cureActive = false;               // Set cure state to false
+  washActive = false;               // Set wash state to false
   
   Serial.println("Stopping all functions!");
-  readydisplay();                   // set the OLED display
+  readydisplay();                   // Set the OLED display
   display.println("Interlock");     // OLED status display
   display.println("  open!  ");     // OLED status display
   display.print  ("");              // OLED status display
   display.display();                // OLED status display
-  noteTrigger = now + 4000;
+  noteTrigger = now + 2000;
   return;
 }
 
@@ -279,13 +286,12 @@ void washUP()
   WashValue = EEPROM.read(0);
   Serial.println("Increase wash time.");
   Serial.println(WashValue);
-  WashValue = WashValue + 1;
-  EEPROM.write(0, WashValue);
+  EEPROM.write(0, ++WashValue);
   WashValue = EEPROM.read(0);
   washSeconds = WashValue*60 ;
   Serial.println("New wash value from memory");
   Serial.println(WashValue);
-    readydisplay();                   // set the OLED display
+    readydisplay();                   // Set the OLED display
     display.println("Wash time:");    // OLED status display
     display.print(WashValue);         // OLED status display
     display.display();                // OLED status display
@@ -299,13 +305,12 @@ void washDOWN()
   WashValue = EEPROM.read(0);
   Serial.println("Decrease wash time.");
   Serial.println(WashValue);
-  WashValue = WashValue - 1;
-  EEPROM.write(0, WashValue);
+  EEPROM.write(0, --WashValue);
   WashValue = EEPROM.read(0);
   washSeconds = WashValue*60 ;
   Serial.println("New wash value from memory");
   Serial.println(WashValue);
-    readydisplay();                   // set the OLED display
+    readydisplay();                   // Set the OLED display
     display.println("Wash time:");    // OLED status display
     display.print(WashValue);         // OLED status display
     display.display();                // OLED status display
@@ -319,13 +324,12 @@ void cureUP()
   CureValue = EEPROM.read(1);
   Serial.println("Increase cure time.");
   Serial.println(CureValue);
-  CureValue = CureValue + 1;
-  EEPROM.write(1, CureValue);
+  EEPROM.write(1, ++CureValue);
   CureValue = EEPROM.read(1);
   uvSeconds = CureValue*60 ;
   Serial.println("New cure value from memory");
   Serial.println(CureValue);
-    readydisplay();                   // set the OLED display
+    readydisplay();                   // Set the OLED display
     display.println("Cure time:");    // OLED status display
     display.print(CureValue);         // OLED status display
     display.display();                // OLED status display
@@ -339,13 +343,12 @@ void cureDOWN()
   CureValue = EEPROM.read(1);
   Serial.println("Decrease cure time.");
   Serial.println(CureValue);
-  CureValue = CureValue - 1;
-  EEPROM.write(1, CureValue);
+  EEPROM.write(1, --CureValue);
   CureValue = EEPROM.read(1);
   uvSeconds = CureValue*60 ;
   Serial.println("New cure value from memory");
   Serial.println(CureValue);
-    readydisplay();                   // set the OLED display
+    readydisplay();                   // Set the OLED display
     display.println("Cure time:");    // OLED status display
     display.print(CureValue);         // OLED status display
     display.display();                // OLED status display
@@ -357,7 +360,7 @@ void cureDOWN()
 void eepromMenu()
 {
 Serial.print("EEPROM Menu actions");
-readydisplay();                       // set the OLED display
+readydisplay();                       // Set the OLED display
 display.println("SW1-Reset");         // OLED status display
 display.println("SW2-Save");          // OLED status display
 display.print  ("SW3-Exit");          // OLED status display
@@ -367,8 +370,8 @@ display.display();                    // OLED status display
   debouncedSW3.update(); delay(100); debouncedSW3.update(); delay(100); 
 
 Serial.println(".");
-lastTrigger = now;                    // reset the time trigger
-while ( (now - lastTrigger) < 60000)  // give one minute for a response
+lastTrigger = now;                    // Reset the time trigger
+while ( (now - lastTrigger) < 30000)  // Give 30 seconds for a response
   { 
     debouncedSW1.update();  debouncedSW2.update();  debouncedSW3.update();   
   
@@ -381,10 +384,10 @@ while ( (now - lastTrigger) < 60000)  // give one minute for a response
       CureValue = EEPROM.read(1);     // READ BACK WASH TIME
       EEPROM.commit();                // Commit changes to EEPROM
       
-      readydisplay();                 // set the OLED display
-      display.println("WASH&CURE");   // OLED status display
+      readydisplay();                 // Set the OLED display
+      display.println("Wash&Cure");   // OLED status display
       display.println(" EEPROM  ");   // OLED status display
-      display.print  (" RESET!  ");   // OLED status display
+      display.print  (" reset!  ");   // OLED status display
       display.display();              // OLED status display
       noteTrigger = now + 2000;
       return; // exit this function
@@ -393,13 +396,12 @@ while ( (now - lastTrigger) < 60000)  // give one minute for a response
     // SW2 - Save current setting to EEPROM
     if (debouncedSW2.fell())
     { btn;
-      EEPROM.commit();                // Commit changes to EEPROM
-      
-      readydisplay();                 // set the OLED display
-      display.println("WASH&CURE");   // OLED status display
-      display.println(" EEPROM  ");   // OLED status display
-      display.print  (" !SAVED! ");   // OLED status display
-      display.display();              // OLED status display
+      EEPROM.commit();
+      readydisplay();                   // Set the OLED display
+      display.println("Wash&Cure");     // OLED status display
+      display.println("  times  ");     // OLED status display
+      display.print  ("  saved");       // OLED status display
+      display.display();                // OLED status display
       noteTrigger = now + 2000;
       return; // exit this function
     }
@@ -407,7 +409,7 @@ while ( (now - lastTrigger) < 60000)  // give one minute for a response
     // SW3 - Exit EEPROM menu
     if (debouncedSW3.fell())
     { btn;
-      return; // exit this function
+      return; // Exit this function
     }
   }
   Serial.println("Timed-out of EEPROM Menu.");
@@ -482,12 +484,12 @@ void handleNotFound() {
 // EepromSave WEB RESPONSE
 void handleEepromSave() {
   EEPROM.commit();
-  readydisplay();                   // set the OLED display
+  readydisplay();                   // Set the OLED display
   display.println("Wash&Cure");     // OLED status display
   display.println("  times  ");     // OLED status display
   display.print  ("  saved");       // OLED status display
   display.display();                // OLED status display
-  noteTrigger = now + 4000;
+  noteTrigger = now + 2000;
   handleRoot();
 }
 
@@ -552,7 +554,7 @@ void setup()
     for(;;);
   }
 
-  readydisplay();                   // set the OLED display
+  readydisplay();                   // Set the OLED display
   display.println("Wash&Cure");     // OLED status display
   display.println(" ");             // OLED status display
   display.print  (" rev 0.4");      // OLED status display
@@ -578,10 +580,7 @@ void setup()
 
 // WAIT FOR SW3(PIN 0) TO RETURN TO A NORMAL INPUT
   debouncedSW3.update();
-  while (!debouncedSW3.fell()){
-    delay(100);
-    debouncedSW3.update();
-  }
+  btn;
 
   Serial.println("SETUP Complete.");
 
@@ -608,7 +607,7 @@ server.handleClient();
 // OLED STATUS CHECK - WASHING
 if (washActive == true && now > noteTrigger)
 {
-  readydisplay();                         // set the OLED display
+  readydisplay();                         // Set the OLED display
   display.println("Washing...");          // OLED status display
   display.print((((washSeconds*1000)-(now-lastTrigger))/60000));
   display.println(" minutes remaining");  // OLED status display
@@ -619,7 +618,7 @@ if (washActive == true && now > noteTrigger)
 // OLED STATUS CHECK - CURING
 if (cureActive == true && now > noteTrigger)
 {
-  readydisplay();                         // set the OLED display
+  readydisplay();                         // Set the OLED display
   display.println("Curing...");           // OLED status display
   display.print((((uvSeconds*1000)-(now-lastTrigger))/60000));
   display.println(" minutes remaining");  // OLED status display
@@ -630,7 +629,7 @@ if (cureActive == true && now > noteTrigger)
 // OLED STATUS CHECK - READY
 if (cureActive == false && washActive == false && IRstate == LOW && now > noteTrigger)
 {
-  readydisplay();                         // set the OLED display
+  readydisplay();                         // Set the OLED display
   display.println("Wash&Cure");           // OLED status display
   display.println(" ");                   // OLED status display
   display.print  ("  Ready");             // OLED status display
@@ -673,15 +672,15 @@ if (stepper.distanceToGo() == 0 && washActive == true)
   {
     if (washDirection == true)
     {
-      stepper.setCurrentPosition(0);    // set starting position as 0
-      stepper.moveTo((washSteps* -1));  // move stepper x steps  
+      stepper.setCurrentPosition(0);    // Set starting position as 0
+      stepper.moveTo((washSteps* -1));  // Move stepper x steps  
       Serial.println("Changing stepper direction to reverse.");
       washDirection = false;
     }
     else
     {
-      stepper.setCurrentPosition(0);    // set starting position as 0
-      stepper.moveTo(washSteps);        // move stepper x steps
+      stepper.setCurrentPosition(0);    // Set starting position as 0
+      stepper.moveTo(washSteps);        // Move stepper x steps
       Serial.println("Changing stepper direction to forward.");
       washDirection = true;
     }
