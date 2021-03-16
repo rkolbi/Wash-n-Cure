@@ -377,7 +377,8 @@ while ( (now - lastTrigger) < 30000)  // Give 30 seconds for a response
   
     // SW1 - Reset Wash and Cure time to factory defauls
     if (debouncedSW1.fell())
-    { btn;
+    { 
+      btn;
       EEPROM.write(0, CureDefault);   // RESET CURE TIME
       WashValue = EEPROM.read(0);     // READ BACK CURE TIME
       EEPROM.write(1, WashDefault);   // RESET WASH TIME
@@ -395,7 +396,8 @@ while ( (now - lastTrigger) < 30000)  // Give 30 seconds for a response
 
     // SW2 - Save current setting to EEPROM
     if (debouncedSW2.fell())
-    { btn;
+    { 
+      btn;
       EEPROM.commit();
       readydisplay();                   // Set the OLED display
       display.println("Wash&Cure");     // OLED status display
@@ -408,7 +410,8 @@ while ( (now - lastTrigger) < 30000)  // Give 30 seconds for a response
 
     // SW3 - Exit EEPROM menu
     if (debouncedSW3.fell())
-    { btn;
+    { 
+      btn;
       return; // Exit this function
     }
   }
@@ -436,53 +439,61 @@ const char* htmlIndex3 = "</b></td></tr><tr><td>&#x2207 <a href='wd'>DOWN</a> &#
 
 
 // MAIN PAGE
-void handleRoot() {
-server.send(200, "text/html", htmlIndex1 + String(WashValue) + htmlIndex2 + String(CureValue) + htmlIndex3);
+void handleRoot() 
+{
+  server.send(200, "text/html", htmlIndex1 + String(WashValue) + htmlIndex2 + String(CureValue) + htmlIndex3);
 }
 
 
 // WashUP WEB RESPONSE
-void handleWashUp() {
+void handleWashUp() 
+{
   washUP();
   handleRoot();
 }
 
 
 // WashDOWN WEB RESPONSE
-void handleWashDown() {
+void handleWashDown() 
+{
   if (WashValue > 3) washDOWN();
   handleRoot();
 }
 
 // CureUP WEB RESPONSE
-void handleCureUp() {
+void handleCureUp() 
+{
   cureUP();
   handleRoot();
 }
 
 
 // cureDOWN WEB RESPONSE
-void handleCureDown() {
+void handleCureDown() 
+{
   if (CureValue > 3) cureDOWN();
   handleRoot();
 }
 
 
 // StopAll WEB RESPONSE
-void handleStopAll() {
+void handleStopAll() 
+{
   StopAll();
   handleRoot();
 }
 
 
 // 404 - NOT FOUND WEB RESPONSE
-void handleNotFound() {
+void handleNotFound() 
+{
   server.send(404, "text/plain", "404: Page does not exist.\n\n");
 }
 
 
 // EepromSave WEB RESPONSE
-void handleEepromSave() {
+void handleEepromSave() 
+{
   EEPROM.commit();
   readydisplay();                   // Set the OLED display
   display.println("Wash&Cure");     // OLED status display
@@ -583,7 +594,6 @@ void setup()
   btn;
 
   Serial.println("SETUP Complete.");
-
 }
 
 
@@ -648,20 +658,20 @@ if ( (IRstate == HIGH && washActive == true) || (IRstate == HIGH && cureActive =
 // WASH CYCLE CHECK 
 if (washActive == true && ( (now - lastTrigger) > (washSeconds*1000) ) ) 
   {
-  Serial.println("Washing stopped by timer.");
-  Serial.println(now - lastTrigger);
-  Serial.println(washSeconds*1000);
-  washoff();
+    Serial.println("Washing stopped by timer.");
+    Serial.println(now - lastTrigger);
+    Serial.println(washSeconds*1000);
+    washoff();
   }
 
 
 // CURE CYCLE CHECK  
 if(cureActive == true && ( (now - lastTrigger) > (uvSeconds*1000) ) ) 
   {
-  Serial.println("UV Cure stopped by timer.");
-  Serial.println(now - lastTrigger);
-  Serial.println(washSeconds*1000);
-  cureoff();
+    Serial.println("UV Cure stopped by timer.");
+    Serial.println(now - lastTrigger);
+    Serial.println(washSeconds*1000);
+    cureoff();
   }
 
 
@@ -677,7 +687,7 @@ if (stepper.distanceToGo() == 0 && washActive == true)
       Serial.println("Changing stepper direction to reverse.");
       washDirection = false;
     }
-    else
+      else
     {
       stepper.setCurrentPosition(0);    // Set starting position as 0
       stepper.moveTo(washSteps);        // Move stepper x steps
@@ -713,47 +723,56 @@ debouncedSW1.update();  debouncedSW2.update();  debouncedSW3.update();
 
 // SW1 - Start cure function, or if a function is running - increase by one minute
 if (debouncedSW1.fell() && washActive == false && cureActive == false)
-  { btn;
+  { 
+    btn;
     cure();
   }
     else if( debouncedSW1.fell() && washActive == true && cureActive == false &&WashValue < 20)
-      { btn;
-      washUP();
+      {
+        btn;
+        washUP();
       }
         else if( debouncedSW1.fell() && cureActive == true && washActive == false && CureValue < 20)
-          { btn;
-          cureUP();
+          {
+	    btn;
+            cureUP();
           }
 
 
 // SW2 - Start wash function, or if a function is running - decrease by one minute
 if (debouncedSW2.fell() && cureActive == false && washActive == false  )
-  { btn;
+  { 
+    btn;
     wash();
   }
     else if( debouncedSW2.fell() && cureActive == true && washActive == false && CureValue > 3)
-      { btn;
-      cureDOWN();
+      {
+        btn;
+        cureDOWN();
       }
         else if( debouncedSW2.fell() && washActive == true && cureActive == false && WashValue > 3)
-          { btn;
-          washDOWN();
+          {
+	    btn;
+            washDOWN();
           }
 
 
 // SW3 - Stop any running function
 if (debouncedSW3.fell() && washActive == true && cureActive == false)
-  { btn;
-  washoff();
+  {
+    btn;
+    washoff();
   }
     else if( debouncedSW3.fell() && washActive == false && cureActive == true )
-      { btn;
-      cureoff();
+      {
+        btn;
+        cureoff();
       }
 
 // SW3 - If nothing is running, bring up the EEPROM menu
 if ( debouncedSW3.fell() && washActive == false && cureActive == false)
-  { btn;
+  {
+    btn;
     eepromMenu();
   }
 
