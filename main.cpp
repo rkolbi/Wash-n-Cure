@@ -591,8 +591,7 @@ void setup()
   server.onNotFound(handleNotFound);
 
   server.begin();
-  Serial.println("HTTP server started");
-
+  Serial.print("SETUP Complete");
 
 // WAIT FOR SW3(PIN 0) TO RETURN TO A NORMAL INPUT
   lastTrigger = now;                    // Reset the time trigger
@@ -601,12 +600,13 @@ void setup()
     debouncedSW3.update();
     if (debouncedSW3.fell()) 
     {
-      Serial.print("!");
+      Serial.print(".");
     }
     btn;
   }
-
-  Serial.print("SETUP Complete.");
+  
+  Serial.println(" ");
+  Serial.print("Initialization time: ");
   Serial.println(now);
 }
 
