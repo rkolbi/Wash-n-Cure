@@ -266,10 +266,11 @@ void StopAll()
   digitalWrite(FAN, LOW);           // Turn off the fan
   digitalWrite(UVLED, LOW);         // Turn off UV
   digitalWrite(motorEnable, LOW);   // Turn off the motor
+  
   cureActive = false;               // Set cure state to false
   washActive = false;               // Set wash state to false
-  
   Serial.println("Stopping all functions!");
+
   readydisplay();                   // Set the OLED display
   display.println("Interlock");     // OLED status display
   display.println("  open!  ");     // OLED status display
@@ -291,10 +292,11 @@ void washUP()
   washSeconds = WashValue*60 ;
   Serial.println("New wash value from memory");
   Serial.println(WashValue);
-    readydisplay();                   // Set the OLED display
-    display.println("Wash time:");    // OLED status display
-    display.print(WashValue);         // OLED status display
-    display.display();                // OLED status display
+
+  readydisplay();                   // Set the OLED display
+  display.println("Wash time:");    // OLED status display
+  display.print(WashValue);         // OLED status display
+  display.display();                // OLED status display
   noteTrigger = now + 2000;
 }
 
@@ -310,10 +312,11 @@ void washDOWN()
   washSeconds = WashValue*60 ;
   Serial.println("New wash value from memory");
   Serial.println(WashValue);
-    readydisplay();                   // Set the OLED display
-    display.println("Wash time:");    // OLED status display
-    display.print(WashValue);         // OLED status display
-    display.display();                // OLED status display
+
+  readydisplay();                   // Set the OLED display
+  display.println("Wash time:");    // OLED status display
+  display.print(WashValue);         // OLED status display
+  display.display();                // OLED status display
   noteTrigger = now + 2000;
 }
 
@@ -329,10 +332,11 @@ void cureUP()
   uvSeconds = CureValue*60 ;
   Serial.println("New cure value from memory");
   Serial.println(CureValue);
-    readydisplay();                   // Set the OLED display
-    display.println("Cure time:");    // OLED status display
-    display.print(CureValue);         // OLED status display
-    display.display();                // OLED status display
+  
+  readydisplay();                   // Set the OLED display
+  display.println("Cure time:");    // OLED status display
+  display.print(CureValue);         // OLED status display
+  display.display();                // OLED status display
   noteTrigger = now + 2000;
 }
 
@@ -348,10 +352,11 @@ void cureDOWN()
   uvSeconds = CureValue*60 ;
   Serial.println("New cure value from memory");
   Serial.println(CureValue);
-    readydisplay();                   // Set the OLED display
-    display.println("Cure time:");    // OLED status display
-    display.print(CureValue);         // OLED status display
-    display.display();                // OLED status display
+
+  readydisplay();                   // Set the OLED display
+  display.println("Cure time:");    // OLED status display
+  display.print(CureValue);         // OLED status display
+  display.display();                // OLED status display
   noteTrigger = now + 2000;
 }
 
@@ -360,11 +365,11 @@ void cureDOWN()
 void eepromMenu()
 {
 Serial.print("EEPROM Menu actions");
-readydisplay();                       // Set the OLED display
-display.println("SW1-Reset");         // OLED status display
-display.println("SW2-Save");          // OLED status display
-display.print  ("SW3-Exit");          // OLED status display
-display.display();                    // OLED status display  
+readydisplay();                     // Set the OLED display
+display.println("SW1-Reset");       // OLED status display
+display.println("SW2-Save");        // OLED status display
+display.print  ("SW3-Exit");        // OLED status display
+display.display();                  // OLED status display  
 
 // NO DOUBLE-TAP
   debouncedSW3.update(); delay(100); debouncedSW3.update(); delay(100); 
@@ -590,10 +595,19 @@ void setup()
 
 
 // WAIT FOR SW3(PIN 0) TO RETURN TO A NORMAL INPUT
-  debouncedSW3.update();
-  btn;
+  lastTrigger = now;                    // Reset the time trigger
+  while ( (now - lastTrigger) < 2000)   // 2 seconds to clear SW3
+  { 
+    debouncedSW3.update();
+    if (debouncedSW3.fell()) 
+    {
+      Serial.print("!");
+    }
+    btn;
+  }
 
-  Serial.println("SETUP Complete.");
+  Serial.print("SETUP Complete.");
+  Serial.println(now);
 }
 
 
@@ -659,8 +673,6 @@ if ( (IRstate == HIGH && washActive == true) || (IRstate == HIGH && cureActive =
 if (washActive == true && ( (now - lastTrigger) > (washSeconds*1000) ) ) 
   {
     Serial.println("Washing stopped by timer.");
-    Serial.println(now - lastTrigger);
-    Serial.println(washSeconds*1000);
     washoff();
   }
 
@@ -669,8 +681,6 @@ if (washActive == true && ( (now - lastTrigger) > (washSeconds*1000) ) )
 if(cureActive == true && ( (now - lastTrigger) > (uvSeconds*1000) ) ) 
   {
     Serial.println("UV Cure stopped by timer.");
-    Serial.println(now - lastTrigger);
-    Serial.println(washSeconds*1000);
     cureoff();
   }
 
@@ -694,7 +704,6 @@ if (stepper.distanceToGo() == 0 && washActive == true)
       Serial.println("Changing stepper direction to forward.");
       washDirection = true;
     }
-  
   }
 
 // IF WASHING, KEEP STEPPER MOVING
@@ -734,8 +743,8 @@ if (debouncedSW1.fell() && washActive == false && cureActive == false)
       }
         else if( debouncedSW1.fell() && cureActive == true && washActive == false && CureValue < 20)
           {
-	    btn;
-            cureUP();
+	        btn;
+          cureUP();
           }
 
 
@@ -752,8 +761,8 @@ if (debouncedSW2.fell() && cureActive == false && washActive == false  )
       }
         else if( debouncedSW2.fell() && washActive == true && cureActive == false && WashValue > 3)
           {
-	    btn;
-            washDOWN();
+	        btn;
+          washDOWN();
           }
 
 
