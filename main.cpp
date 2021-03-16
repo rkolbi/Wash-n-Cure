@@ -775,6 +775,4 @@ if ( debouncedSW3.fell() && washActive == false && cureActive == false)
     btn;
     eepromMenu();
   }
-
-
 }
