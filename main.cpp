@@ -427,45 +427,37 @@ server.send(200, "text/plane", "[" + String(WashMinutes) + "," + String(CureMinu
 
 void wncChange() 
 {
- String webAction = server.arg("go");
+ webAction = server.arg("go");
  Serial.println(webAction);
- 
-  if(webAction == "1")                 // Wash Time Increase by one minute
-  {
-    washUP();
-  }
 
-  else if(webAction == "2")            // Wash Time Decrease by one minute
+  switch (webAction) 
   {
-    washDOWN();
+    case 1:
+      washUP();
+      break;
+    case 2:
+      washDOWN();
+      break;
+    case 3:
+      cureUP();
+      break;
+    case 4:
+      cureDOWN();
+      break;
+    case 5:
+      EEPROM.commit(); 
+      readydisplay();                    // set the OLED display
+      display.println("Wash&Cure");      // OLED status display
+      display.println("saving  ");       // OLED status display
+      display.print  ("settings");       // OLED status display
+      display.display();                 // OLED status display
+      noteTrigger = millis() + 4000;
+      break;
+    case 6:
+      StopAll();
+      break;
   }
   
-  else if(webAction == "3")            // Cure Time Increase by one minute
-  {
-    cureUP();
-  }
-  
-  else if(webAction == "4")            // Cure Time Decrease by one minute
-  {
-    cureDOWN();
-  }
-
-  else if(webAction == "5")            // Commit time changes to EEPROM
-  {
-    EEPROM.commit(); 
-    readydisplay();                    // set the OLED display
-    display.println("Wash&Cure");      // OLED status display
-    display.println("saving  ");       // OLED status display
-    display.print  ("settings");       // OLED status display
-    display.display();                 // OLED status display
-    noteTrigger = millis() + 4000;
-  }
- 
-  else if(webAction == "6")            // Stop All
-  {
-    StopAll();
-  }
-
   wncInfo();                           // Send back updated data
 }
  
