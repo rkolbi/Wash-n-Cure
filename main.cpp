@@ -433,7 +433,7 @@ void wncChange()  // What to do with the received web action.
  webAction = server.arg("go");
  Serial.println(webAction);
 
-  switch (webAction) 
+  switch (webAction)   // webAction may throw errors if recognized as not a int. Maybe try 'switch (stoi(webAction))'
   {
     case 1:
       washUP();
