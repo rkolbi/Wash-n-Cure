@@ -68,8 +68,6 @@ System Status: <span id="status"></span>
 </table>
   
 <script>
-var mleft = 0;
-  
 function send(data) 
 {
   var xhttp = new XMLHttpRequest();
@@ -97,7 +95,7 @@ function getData() {
       document.getElementById("cure_val").innerHTML = myArr[1];
       document.getElementById("rawstatus").innerHTML = myArr[2];
       if (rawstatus == 0) {
-        document.getElementById("status").innerHTML = "System ready.";
+        document.getElementById("status").innerHTML = "Ready.";
       }
       if (rawstatus > 100) {
         mleft = rawstatus - 100;
