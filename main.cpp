@@ -344,7 +344,7 @@ display.print  ("SW3-Exit");           // OLED status display
 display.display();                     // OLED status display  
 
 // NO DOUBLE-TAP
-  debouncedSW3.update(); delay(100); debouncedSW3.update(); delay(100); 
+debouncedSW3.update(); delay(100); debouncedSW3.update(); delay(100); 
 
 Serial.println(".");
 lastTrigger = now;                     // Reset the time trigger
@@ -526,15 +526,15 @@ void setup()
 
   pinMode(SW1, INPUT);                 // Set SW1 pin as an input
     debouncedSW1.attach(SW1);          // attach debouncedSW1 to SW1
-    debouncedSW1.interval(25);         // 25 ms bounce interval
+    debouncedSW1.interval(5);          // 25 ms bounce interval
 
   pinMode(SW2, INPUT);                 // Set SW2 pin as an input
     debouncedSW2.attach(SW2);          // attach debouncedSW2 to SW2
-    debouncedSW2.interval(25);         // 25 ms bounce interval 
+    debouncedSW2.interval(5);          // 25 ms bounce interval 
 
   pinMode(SW3, INPUT);                 // Set SW3 pin as an input
     debouncedSW3.attach(SW3);          // attach debouncedSW3 to SW3
-    debouncedSW3.interval(25);         // 25 ms bounce interval
+    debouncedSW3.interval(5);          // 25 ms bounce interval
 
 
 // OLED INITIALIZATION
