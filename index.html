@@ -68,6 +68,8 @@ System Status: <span id="status"></span>
 </table>
   
 <script>
+var mleft = 0;
+  
 function send(data) 
 {
   var xhttp = new XMLHttpRequest();
@@ -93,10 +95,22 @@ function getData() {
       var myArr = JSON.parse(this.responseText);
       document.getElementById("wash_val").innerHTML = myArr[0];
       document.getElementById("cure_val").innerHTML = myArr[1];
-      document.getElementById("status").innerHTML = myArr[2];
+      document.getElementById("rawstatus").innerHTML = myArr[2];
+      if (rawstatus == 0) {
+        document.getElementById("status").innerHTML = "System ready.";
+      }
+      if (rawstatus > 100) {
+        mleft = rawstatus - 100;
+        document.getElementById("status").innerHTML = "Currently washing, " + mleft + " minutes left.";
+      }
+      if (rawstatus > 200) {
+        mleft = rawstatus - 200;
+        document.getElementById("status").innerHTML = "Currently curing, " + mleft + " minutes left.";
+      }
       this.responseText;
     }
   };
+  
   xhttp.open("GET", "wncinfo", true);
   xhttp.send();
 }
