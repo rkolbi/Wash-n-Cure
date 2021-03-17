@@ -115,7 +115,7 @@ lib_deps =
   boolean washActive = false;
   boolean cureActive = false;
   int systemStatus;                    // Status used for web display
-  int webAction;                       // Set the container for received web action request
+
 
 // TIMING VARIABLES
   #define now millis()  
@@ -430,10 +430,10 @@ server.send(200, "text/plane", "[" + String(WashMinutes) + "," + String(CureMinu
 
 void wncChange()  // What to do with the received web action. 
 {
- webAction = server.arg("go");
+ String webAction = server.arg("go");
  Serial.println(webAction);
 
-  switch (webAction)   // webAction may throw errors if recognized as not a int. Maybe try 'switch (stoi(webAction))'
+  switch (stoi(webAction))   // webAction may throw errors if recognized as not a int. Maybe try 'switch (stoi(webAction))'
   {
     case 1:
       washUP();
