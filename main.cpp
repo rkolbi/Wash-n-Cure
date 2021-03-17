@@ -102,6 +102,7 @@ lib_deps =
   Bounce debouncedSW3 = Bounce();      // Bounce instance for SW3
   #define btn delay(500)               // Wait function following button detection
 
+
 // WASH AND CURE VARIABLES
 #include <EEPROM.h>     
   #define EEPROM_SIZE 2                // Define the number of bytes we want to access in the EEPROM
@@ -114,11 +115,13 @@ lib_deps =
   boolean washActive = false;
   boolean cureActive = false;
   int systemStatus;                    // Status used for web display
+  int webAction;                       // Set the container for received web action request
 
 // TIMING VARIABLES
   #define now millis()  
   unsigned long lastTrigger = 0;
   unsigned long noteTrigger = 0;
+
 
 // OLED SUPPORT
 #include <Adafruit_GFX.h>
@@ -425,7 +428,7 @@ void wncInfo()
 server.send(200, "text/plane", "[" + String(WashMinutes) + "," + String(CureMinutes) + "," + String(systemStatus) + "]");
 }
 
-void wncChange() 
+void wncChange()  // What to do with the received web action. 
 {
  webAction = server.arg("go");
  Serial.println(webAction);
