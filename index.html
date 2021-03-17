@@ -1,0 +1,108 @@
+const char webpage[] PROGMEM = R"=====(
+<!DOCTYPE html>
+<html>
+  <meta name=viewport content='width=400'>
+<style type="text/css">
+body {
+  font-family: Arial;
+  margin: 0;
+  color: #212f3c;
+}
+.header {
+  padding: 5px;
+  text-align: center;
+  background: #85929e;
+  color: #1c2833;
+  font-size: 20px;
+}
+.footer {
+   position: fixed;
+   left: 0;
+   bottom: 0;
+   width: 100%;
+   background-color: #85929e;
+   color: #ebedef;
+   text-align: center;
+}
+.table, th, td {
+  border: 0px solid black;
+  border-collapse: collapse;
+  text-align: center;
+}
+th, td {
+  padding: 5px;
+  text-align: center;
+}
+#t01 {
+  width:400px;
+}
+</style>
+<body style="text-align:center;">
+<center>
+<div>
+<div class="header"><big><i><b>Wash & Cure</big></b></i><br><small>Resin printing post processing station control.</small></div><br><br>
+System Status: <span id="status"></span>
+<br><br><br>
+<table>
+  <tr>
+    <th><center>Wash Minutes</center></th> <th></th> <th><center>Cure Minutes</center></th>
+  </tr>
+  <tr>
+    <td><button onclick="send(1)">&#x2206 Wash &#x2206</button></td> <td></td> <td><button onclick="send(3)">&#x2206 Cure &#x2206</button></td>
+  </tr>
+  <tr>
+    <td><span id="wash_val">0</span></td> <td></td> <td><span id="cure_val">0</span></td>
+  </tr>
+  <tr>
+    <td><button onclick="send(2)">&#x2207 Wash &#x2207</button></td> <td></td> <td><button onclick="send(4)">&#x2207 Cure &#x2207</button></td>
+  </tr>
+  <tr>
+    <td></td> <td><br></td> <td></td>
+  </tr>
+</table>
+<br><br>
+<table>
+  <tr>
+    <td><button onclick="send(6)">&#x220E STOP &#x220E</button></td></tr><tr> <td><button onclick="send(5)">&#x21AF SAVE &#x21AF</button></td></tr><tr> <td><button onclick="window.location.href='http://10.0.1.1:777/update';">&#x21BB .BIN &#x21BB</butt</td>
+  </tr>
+</table>
+  
+<script>
+function send(data) 
+{
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      document.getElementById("go").innerHTML = this.responseText;
+    }
+  };
+  xhttp.open("GET", "wncchange?go="+data, true);
+  xhttp.send();
+}
+
+
+setInterval(function() 
+{
+  getData();
+}, 1000); 
+
+function getData() {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      var myArr = JSON.parse(this.responseText);
+      document.getElementById("wash_val").innerHTML = myArr[0];
+      document.getElementById("cure_val").innerHTML = myArr[1];
+      document.getElementById("status").innerHTML = myArr[2];
+      this.responseText;
+    }
+  };
+  xhttp.open("GET", "wncinfo", true);
+  xhttp.send();
+}
+</script>
+<div class="footer"><p>revision: 0.6.1</p></div>
+</center>
+</body>
+</html>
+)=====";

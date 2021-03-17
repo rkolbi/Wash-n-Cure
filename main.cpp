@@ -1,6 +1,6 @@
 /*
 ///////////////////////////////////////////
-////// Wash-n-Cure Rev 0.4.1 (ALPHA) ////// 
+////// Wash-n-Cure Rev 0.6.0 (ALPHA) ////// 
 ///////////////////////////////////////////
 
 
@@ -85,7 +85,7 @@ lib_deps =
 #include <Arduino.h>
 #include <Wire.h>
 #include <Bounce2.h>
-
+#include "index.html"
 
 // UV, IR, AND SW PINS AND CONTROL
   #define UVLED 32                // PIN:32 UV LED
@@ -111,7 +111,7 @@ lib_deps =
   boolean cureActive = false;
   int washSeconds;
   int uvSeconds;      
-
+  String systemStatus;
 
 // TIMING VARIABLES
   #define now millis()  
@@ -434,60 +434,12 @@ while ( (now - lastTrigger) < 30000)  // Give 30 seconds for a response
 // SET WEBSERVER PORT
 WebServer server(80);
 
-
-// INDEX PAGE ( / ) HTML BODY
-const char* htmlIndex1 = "<html><head><meta name=viewport content='width=400'><style>A {text-decoration: none;} table, th, td { border: 0px; border-collapse: collapse; } th, td { padding: 15px; text-align: center; } #t01 { width:400px; }</style></head><body><center><h2>Wash & Cure</h2><h5>revision 0.4</h5><br><br><table id='t01'><tr><th>Wash Time</th><th></th><th>Cure Time</th></tr><tr><td>&#x2206 <a href='wu'>UP</a> &#x2206</td><td></td><td>&#x2206 <a href='cu'>UP</a> &#x2206</td></tr><tr><td><b>";
-    // Server inserts WashValue here
-const char* htmlIndex2 = "</b></td><td>&#x21AF <a href='es'>Save Times</a> &#x21AF</td><td><b>";
-    // Server inserts CureValue here
-const char* htmlIndex3 = "</b></td></tr><tr><td>&#x2207 <a href='wd'>DOWN</a> &#x2207</td><td></td><td>&#x2207 <a href='cd'>DOWN</a> &#x2207</td></tr><tr></tr><tr><td>&#x220E <a href='sa'>STOP ALL</a></td><td></td><td>&#x21BB <a href='http://10.0.1.1:777/update'>UPDATE .BIN</a></td></tr></table>";
-
-
-// MAIN PAGE
+// SERVER THE CONTENTS OF THE INDEX.HTML FILE
 void handleRoot() 
 {
-  server.send(200, "text/html", htmlIndex1 + String(WashValue) + htmlIndex2 + String(CureValue) + htmlIndex3);
+ String s = webpage;
+ server.send(200, "text/html", s);
 }
-
-
-// WashUP WEB RESPONSE
-void handleWashUp() 
-{
-  washUP();
-  handleRoot();
-}
-
-
-// WashDOWN WEB RESPONSE
-void handleWashDown() 
-{
-  if (WashValue > 3) washDOWN();
-  handleRoot();
-}
-
-// CureUP WEB RESPONSE
-void handleCureUp() 
-{
-  cureUP();
-  handleRoot();
-}
-
-
-// cureDOWN WEB RESPONSE
-void handleCureDown() 
-{
-  if (CureValue > 3) cureDOWN();
-  handleRoot();
-}
-
-
-// StopAll WEB RESPONSE
-void handleStopAll() 
-{
-  StopAll();
-  handleRoot();
-}
-
 
 // 404 - NOT FOUND WEB RESPONSE
 void handleNotFound() 
@@ -495,6 +447,60 @@ void handleNotFound()
   server.send(404, "text/plain", "404: Page does not exist.\n\n");
 }
 
+// This send the JSON formatted data to the webpage.
+void wncInfo() 
+{
+//Example format: [ "Ford", "BMW", "Audi", "Fiat" ]
+if( cureActive == true && washActive == false ) systemStatus = "Currently curing, " + String((((uvSeconds*1000)-(now-lastTrigger))/60000)) + " minutes remaining.";
+if( cureActive == false && washActive == true ) systemStatus = "Currently washing, " + String((((washSeconds*1000)-(now-lastTrigger))/60000)) + " minutes remaining.";
+if( cureActive == false && washActive == false ) systemStatus = "Idle.";
+server.send(200, "text/plane", "[" + String(WashValue) + "," + String(CureValue) + ", \"" + systemStatus + "\"]");
+}
+
+void wncChange() 
+{
+ String webAction = server.arg("go");
+ Serial.println(webAction);
+ 
+  if(webAction == "1")              // Wash Time Increase by one minute
+  {
+    washUP();
+  }
+
+  else if(webAction == "2")         // Wash Time Decrease by one minute
+  {
+    washDOWN();
+  }
+  
+  else if(webAction == "3")         // Cure Time Increase by one minute
+  {
+    cureUP();
+  }
+  
+  else if(webAction == "4")         // Cure Time Decrease by one minute
+  {
+    cureDOWN();
+  }
+
+  else if(webAction == "5")         // Commit time changes to EEPROM
+  {
+    EEPROM.commit(); 
+    readydisplay();                 // set the OLED display
+    display.println("Wash&Cure");   // OLED status display
+    display.println("saving  ");    // OLED status display
+    display.print  ("settings");    // OLED status display
+    display.display();              // OLED status display
+    noteTrigger = millis() + 4000;
+  }
+ 
+  else if(webAction == "6")         // Stop All
+  {
+    StopAll();
+  }
+
+  wncInfo();                        // Send back updated data
+}
+ 
 
 // EepromSave WEB RESPONSE
 void handleEepromSave() 
@@ -573,7 +579,7 @@ void setup()
   readydisplay();                   // Set the OLED display
   display.println("Wash&Cure");     // OLED status display
   display.println(" ");             // OLED status display
-  display.print  (" rev 0.4");      // OLED status display
+  display.print  (" r0.6.0");       // OLED status display
   display.display();                // OLED status display
   noteTrigger = now + 4000;
 
@@ -581,13 +587,10 @@ void setup()
 // WEB PAGE CONFIGURATIONS
 
 // WHEN THE SERVER GETS A REQUEST FOR A PAGE, CALL ITS FUNCTION.
-  server.on("/", handleRoot);  
-  server.on("/wu", handleWashUp);
-  server.on("/wd", handleWashDown);
-  server.on("/cu", handleCureUp);
-  server.on("/cd", handleCureDown);
-  server.on("/sa", handleStopAll);
-  server.on("/es", handleEepromSave);
+  server.on("/", handleRoot);
+  server.on("/wncchange", wncChange);
+  server.on("/wncinfo", wncInfo);
+
   server.onNotFound(handleNotFound);
 
   server.begin();
@@ -685,9 +688,7 @@ if(cureActive == true && ( (now - lastTrigger) > (uvSeconds*1000) ) )
   }
 
 
-// STEPPER MOTOR CHECK
-
-// IF WASHING, CHECK STEPS TO GO AND REVERSE DIRECTION IF STEPS HAVE BEEN COMPLETED
+// STEPPER MOTOR CHECK - IF WASHING, CHECK STEPS TO GO AND REVERSE DIRECTION IF STEPS HAVE BEEN COMPLETED
 if (stepper.distanceToGo() == 0 && washActive == true)
   {
     if (washDirection == true)
@@ -706,13 +707,13 @@ if (stepper.distanceToGo() == 0 && washActive == true)
     }
   }
 
-// IF WASHING, KEEP STEPPER MOVING
+// STEPPER MOTOR CHECK - IF WASHING, KEEP STEPPER MOVING
 if (washActive == true)
 {
   stepper.run();  
 }
 
-// IF CURING, KEEP STEPPER MOVING
+// STEPPER MOTOR CHECK - IF CURING, KEEP STEPPER MOVING
 if (cureActive == true)
 {
   stepper.runSpeed();
