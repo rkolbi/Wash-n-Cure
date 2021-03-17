@@ -93,15 +93,14 @@ function getData() {
       var myArr = JSON.parse(this.responseText);
       document.getElementById("wash_val").innerHTML = myArr[0];
       document.getElementById("cure_val").innerHTML = myArr[1];
-      document.getElementById("rawstatus").innerHTML = myArr[2];
-      if (rawstatus == 0) {
+      if (myArr[2] == 0) {
         document.getElementById("status").innerHTML = "Ready.";
       }
-      if (rawstatus > 100) {
+      if (myArr[2] > 100) {
         mleft = rawstatus - 100;
         document.getElementById("status").innerHTML = "Currently washing, " + mleft + " minutes left.";
       }
-      if (rawstatus > 200) {
+      if (myArr[2] > 200) {
         mleft = rawstatus - 200;
         document.getElementById("status").innerHTML = "Currently curing, " + mleft + " minutes left.";
       }
