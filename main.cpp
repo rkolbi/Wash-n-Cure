@@ -166,9 +166,7 @@ void readydisplay()
 // START THE WASH FUNCTION
 void wash() 
 {
-  Serial.println("Wash Cycle ON!");
-  WashMinutes = EEPROM.read(0);
-  Serial.print("Wash value from memory: ");
+  Serial.print("Wash Cycle ON :");
   Serial.println(WashMinutes);
 
   washActive = true;                   // Set wash state to true
@@ -193,9 +191,7 @@ void wash()
 // START THE CURE FUNCTION
 void cure()
 { 
-  Serial.println("UV Cycle ON!");
-  CureMinutes = EEPROM.read(1);
-  Serial.println("Cure value from memory");
+  Serial.print("UV Cycle ON :");
   Serial.println(CureMinutes);
 
   cureActive = true;                   // Set cure state to true
