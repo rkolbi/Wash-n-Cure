@@ -430,10 +430,7 @@ server.send(200, "text/plane", "[" + String(WashMinutes) + "," + String(CureMinu
 
 void wncChange()  // What to do with the received web action. 
 {
- String webAction = server.arg("go");
- Serial.println(webAction);
-
-  switch (stoi(webAction))   // webAction may throw errors if recognized as not a int. Maybe try 'switch (stoi(webAction))'
+  switch (stoi(server.arg("go")))   // webAction may throw errors if recognized as not a int. Maybe try 'switch (stoi(webAction))'
   {
     case 1:
       washUP();
