@@ -113,7 +113,7 @@ lib_deps =
   boolean washDirection = false;
   boolean washActive = false;
   boolean cureActive = false;
-  String systemStatus;                 // Status used for web display
+  int systemStatus;                    // Status used for web display
 
 // TIMING VARIABLES
   #define now millis()  
@@ -422,8 +422,7 @@ void handleNotFound()
 // This send the JSON formatted data to the webpage.
 void wncInfo() 
 {
-//Example format: [ "Ford", "BMW", "Audi", "Fiat" ]
-server.send(200, "text/plane", "[" + String(WashMinutes) + "," + String(CureMinutes) + ", \"" + systemStatus + "\"]");
+server.send(200, "text/plane", "[" + String(WashMinutes) + "," + String(CureMinutes) + "," + String(systemStatus) + "]");
 }
 
 void wncChange() 
@@ -603,7 +602,7 @@ server.handleClient();
 // OLED STATUS CHECK - WASHING
 if (washActive == true && now > noteTrigger)
 {
-  systemStatus = "Currently washing, " + String((WashMinutes-((now-lastTrigger)*60000))) + " minutes remaining.";
+  systemStatus = 100 + 	(WashMinutes-((now-lastTrigger)*60000));
   readydisplay();                      // Set the OLED display
   display.println("Washing...");       // OLED status display
   display.print((WashMinutes-((now-lastTrigger)*60000)));
@@ -615,7 +614,7 @@ if (washActive == true && now > noteTrigger)
 // OLED STATUS CHECK - CURING
 if (cureActive == true && now > noteTrigger)
 {
-  systemStatus = "Currently curing, " + String((CureMinutes-((now-lastTrigger)*60000))) + " minutes remaining.";
+  systemStatus = 200 + 	(CureMinutes-((now-lastTrigger)*60000));
   readydisplay();                      // Set the OLED display
   display.println("Curing...");        // OLED status display
   display.print((CureMinutes-((now-lastTrigger)*60000)));
@@ -627,7 +626,7 @@ if (cureActive == true && now > noteTrigger)
 // OLED STATUS CHECK - READY
 if (cureActive == false && washActive == false && IRstate == LOW && now > noteTrigger)
 {
-  systemStatus = "Idle.";
+  systemStatus = 0;
   readydisplay();                      // Set the OLED display
   display.println("Wash&Cure");        // OLED status display
   display.println(" ");                // OLED status display
