@@ -66,7 +66,7 @@ System Status: <span id="status"></span>
     <td><button onclick="send(6)">&#x220E STOP &#x220E</button></td></tr><tr> <td><button onclick="send(5)">&#x21AF SAVE &#x21AF</button></td></tr><tr> <td><button onclick="window.location.href='http://10.0.1.1:777/update';">&#x21BB .BIN &#x21BB</butt</td>
   </tr>
 </table>
-<br><br><br><p id="derr"></p>  
+<br><br><br><p id="reportError"></p>  
 <script>
 function send(data) 
 {
@@ -112,7 +112,7 @@ function getData() {
   xhttp.send();
 }
 catch(err) {
-  document.getElementById("derr").innerHTML = err.message;
+  document.getElementById("reportError").innerHTML = err.message;
 }  
 </script>
 <div class="footer"><p>revision: 0.6.1</p></div>
