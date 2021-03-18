@@ -686,65 +686,65 @@ void loop()
         stepper.runSpeed();
     }
 
-   	//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-   	//// SWITCH CONTROL	
-   	//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//// SWITCH CONTROL	
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-   	// UPDATE THE BOUNCE INSTANCES
-    debouncedSW1.update();
-    debouncedSW2.update();
-    debouncedSW3.update();
+   // UPDATE THE BOUNCE INSTANCES
+   debouncedSW1.update();
+   debouncedSW2.update();
+   debouncedSW3.update();
 
-   	// SW1 - Start cure function, or if a function is running - increase by one minute
-    if (debouncedSW1.fell() && washActive == false && cureActive == false)
-    {
+   // SW1 - Start cure function, or if a function is running - increase by one minute
+   if (debouncedSW1.fell() && washActive == false && cureActive == false)
+   {
         btn;
         cure();
-    }
-    else if (debouncedSW1.fell() && washActive == true && cureActive == false && washMinutes < 20)
-    {
+   }
+   else if (debouncedSW1.fell() && washActive == true && cureActive == false && washMinutes < 20)
+   {
         btn;
         washUP();
-    }
-    else if (debouncedSW1.fell() && cureActive == true && washActive == false && cureMinutes < 20)
-    {
+   }
+   else if (debouncedSW1.fell() && cureActive == true && washActive == false && cureMinutes < 20)
+   {
         btn;
         cureUP();
-    }
+   }
 
-   	// SW2 - Start wash function, or if a function is running - decrease by one minute
-    if (debouncedSW2.fell() && cureActive == false && washActive == false)
-    {
+   // SW2 - Start wash function, or if a function is running - decrease by one minute
+   if (debouncedSW2.fell() && cureActive == false && washActive == false)
+   {
         btn;
         wash();
-    }
-    else if (debouncedSW2.fell() && cureActive == true && washActive == false && cureMinutes > 3)
-    {
+   }
+   else if (debouncedSW2.fell() && cureActive == true && washActive == false && cureMinutes > 3)
+   {
         btn;
         cureDOWN();
-    }
-    else if (debouncedSW2.fell() && washActive == true && cureActive == false && washMinutes > 3)
-    {
+   }
+   else if (debouncedSW2.fell() && washActive == true && cureActive == false && washMinutes > 3)
+   {
         btn;
         washDOWN();
-    }
+   }
 
-   	// SW3 - Stop any running function
-    if (debouncedSW3.fell() && washActive == true && cureActive == false)
-    {
+   // SW3 - Stop any running function
+   if (debouncedSW3.fell() && washActive == true && cureActive == false)
+   {
         btn;
         washoff();
-    }
-    else if (debouncedSW3.fell() && washActive == false && cureActive == true)
-    {
+   }
+   else if (debouncedSW3.fell() && washActive == false && cureActive == true)
+   {
         btn;
         cureoff();
-    }
+   }
 
-   	// SW3 - If nothing is running, bring up the EEPROM menu
-    if (debouncedSW3.fell() && washActive == false && cureActive == false)
-    {
+   // SW3 - If nothing is running, bring up the EEPROM menu
+   if (debouncedSW3.fell() && washActive == false && cureActive == false)
+   {
         btn;
         eepromMenu();
-    }
+   }
 }
