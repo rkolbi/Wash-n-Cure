@@ -7,8 +7,8 @@
 
 -Over the Air (OTA) firmware updating, access via index page (10.0.1.1).
 
--Simple web interface to change wash and cure times, commit new times to EEPROM, OTA firmware update (.BIN
- file), and stop all functions.
+-Simple web interface employing simple AJAX & JSON to change wash and cure times, commit new times to EEPROM,
+ OTA firmware update (.BIN file), and stop all functions.
 
 -Button functions as: 
          When no functions are active: SW1 = Starts Cure        SW2 = Starts Wash       SW3 = EEPROM Menu
