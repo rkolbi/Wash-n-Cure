@@ -286,19 +286,25 @@ void washUP()
 void washDOWN()
 {
     washMinutes = EEPROM.read(0);
-    Serial.println("Decrease wash time.");
-    Serial.println(washMinutes);
-    EEPROM.write(0, --washMinutes);
-    washMinutes = EEPROM.read(0);
-    washSeconds = washMinutes * 60;
-    Serial.println("New wash value from memory");
-    Serial.println(washMinutes);
+    if (washMinutes > 1) 
+    {
+        if ((washActive == false) || (washActive == true && ((((washSeconds *1000) - (now - actionTrigger)) / 60000)) > 1))
+        {
+            Serial.println("Decrease wash time.");
+            Serial.println(washMinutes);
+            EEPROM.write(0, --washMinutes);
+            washMinutes = EEPROM.read(0);
+            washSeconds = washMinutes * 60;
+            Serial.println("New wash value from memory");
+            Serial.println(washMinutes);
 
-    sendToOLED();
-    display.println("Wash time:");
-    display.print(washMinutes);
-    display.display();
-    alertTrigger = now + 2000;
+            sendToOLED();
+            display.println("Wash time:");
+            display.print(washMinutes);
+            display.display();
+            alertTrigger = now + 2000;
+        }
+    }
 }
 
 // INCREASE CURE TIME
@@ -324,19 +330,25 @@ void cureUP()
 void cureDOWN()
 {
     cureMinutes = EEPROM.read(1);
-    Serial.println("Decrease cure time.");
-    Serial.println(cureMinutes);
-    EEPROM.write(1, --cureMinutes);
-    cureMinutes = EEPROM.read(1);
-    cureSeconds = cureMinutes * 60;
-    Serial.println("New cure value from memory");
-    Serial.println(cureMinutes);
+    if (cureMinutes > 1) 
+    {
+        if ((cureActive == false) || (cureActive == true && ((((cureSeconds *1000) - (now - actionTrigger)) / 60000)) > 1))
+        {
+        Serial.println("Decrease cure time.");
+        Serial.println(cureMinutes);
+        EEPROM.write(1, --cureMinutes);
+        cureMinutes = EEPROM.read(1);
+        cureSeconds = cureMinutes * 60;
+        Serial.println("New cure value from memory");
+        Serial.println(cureMinutes);
 
-    sendToOLED();
-    display.println("Cure time:");
-    display.print(cureMinutes);
-    display.display();
-    alertTrigger = now + 2000;
+        sendToOLED();
+        display.println("Cure time:");
+        display.print(cureMinutes);
+        display.display();
+        alertTrigger = now + 2000;
+        }
+    }
 }
 
 // EEPROM MENU ACTIONS
