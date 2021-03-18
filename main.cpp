@@ -24,8 +24,10 @@
 -Wash and Cure functins use different stepper motor controls. 
 -Cure uses the "stepper.setSpeed(500)" and requires "stepper.runSpeed()" to keep moving - yeilding a
  constants turning motor.
--Wash uses "stepper.moveTo(washSteps)", steps to move set by "int washSteps = 2000;", and requires
- "stepper.run();" to keep moving - allowing the motor to have directional change.
+-Wash uses "stepper.moveTo(washSteps)", steps to "int washSteps = 2000;", and requires "stepper.run();" to
+ keep moving until the steps are complete - allowing the motor to have directional change. The directional
+ change occurs from polling "stepper.distanceToGo() == 0", then the code can take 'washSteps * -1' and
+ restart the process - now running to the negative steps (turning the other way).
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
