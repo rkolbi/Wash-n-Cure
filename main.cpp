@@ -1,9 +1,8 @@
 /*
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //// Wash-n-Cure Rev 0.7.0 (ALPHA)
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 -AP hard coded to SSID: "Wash-n-Cure", Password: "password", IP: 10.0.1.1
 
 -Over the Air (OTA) firmware updating, access via index page (10.0.1.1).
@@ -28,7 +27,7 @@
    -Wash uses "stepper.moveTo(washSteps)", steps to move set by "int washSteps = 2000;", and requires
      "stepper.run();" to keep moving - allowing the motor to have directional change.
 
--=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 To do:
 
@@ -45,7 +44,7 @@ To do:
           means a double-press will hard stop the cycle.
 	-Pressing SW1 or SW2 while continue with cycle unless Interlock is open. If Interlock is open, SW1 &SW2 will be ignored.
 
--=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 PLATFORMIO.INI FILE CONTENTS:
 ; PlatformIO Project Configuration File
@@ -71,9 +70,9 @@ lib_deps =
 
 */
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//// LIBRARIES & DECLARATIONS
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//// LIBRARIES & DECLARATIONS          LIBRARIES & DECLARATIONS          LIBRARIES & DECLARATIONS
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 // BASE LIBRARIES
 #include <Arduino.h>
@@ -143,9 +142,9 @@ IPAddress local_ip(10, 0, 1, 1);
 IPAddress gateway(10, 0, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//// FUNCTIONS	
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//// FUNCTIONS          FUNCTIONS          FUNCTIONS          FUNCTIONS          FUNCTIONS          FUNCTIONS	
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 // READY THE OLED DISPLAY
 void sendToOLED()
@@ -368,8 +367,8 @@ void eepromMenu()
     delay(100);
 
     Serial.println(".");
-    actionTrigger = now;	// Reset the time trigger
-    while ((now - actionTrigger) < 30000)	// Give 30 seconds for a response
+    actionTrigger = now;  // Reset the time trigger
+    while ((now - actionTrigger) < 30000)  // Give 30 seconds for a response
     {
         debouncedSW1.update();
         debouncedSW2.update();
@@ -379,11 +378,11 @@ void eepromMenu()
         if (debouncedSW1.fell())
         {
             btn;
-            EEPROM.write(0, CureDefault);	// RESET CURE TIME
-            washMinutes = EEPROM.read(0);	// READ BACK CURE TIME
-            EEPROM.write(1, WashDefault);	// RESET WASH TIME
-            cureMinutes = EEPROM.read(1);	// READ BACK WASH TIME
-            EEPROM.commit();	// Commit changes to EEPROM
+            EEPROM.write(0, CureDefault);  // RESET CURE TIME
+            washMinutes = EEPROM.read(0);  // READ BACK CURE TIME
+            EEPROM.write(1, WashDefault);  // RESET WASH TIME
+            cureMinutes = EEPROM.read(1);  // READ BACK WASH TIME
+            EEPROM.commit();  // Commit changes to EEPROM
 
             sendToOLED();
             display.println("Wash&Cure");
@@ -391,7 +390,7 @@ void eepromMenu()
             display.print(" reset!  ");
             display.display();
             alertTrigger = now + 2000;
-            return;	// exit this function
+            return;  // exit this function
         }
 
        	// SW2 - Save current setting to EEPROM
@@ -405,22 +404,22 @@ void eepromMenu()
             display.print("  saved");
             display.display();
             alertTrigger = now + 2000;
-            return;	// exit this function
+            return;  // exit this function
         }
 
        	// SW3 - Exit EEPROM menu
         if (debouncedSW3.fell())
         {
             btn;
-            return;	// Exit this function
+            return;  // Exit this function
         }
     }
     Serial.println("Timed-out of EEPROM Menu.");
 }
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//// WEB INTERFACE	
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//// WEB INTERFACE          WEB INTERFACE          WEB INTERFACE          WEB INTERFACE         WEB INTERFACE
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 // SET WEBSERVER PORT
 WebServer server(80);
@@ -450,29 +449,30 @@ void wncInfo()
 void wncChange()
 {
     String webAction = server.arg("go");
+    Serial.print("Received webAction :");
     Serial.println(webAction);
 
-    if (webAction == "1")	// Wash Time Increase by one minute
+    if (webAction == "1")  // Wash Time Increase by one minute
     {
         washUP();
-        wncInfo();	// Send back updated data
+        wncInfo();  // Send back updated data
     }
-    else if (webAction == "2")	// Wash Time Decrease by one minute
+    else if (webAction == "2")  // Wash Time Decrease by one minute
     {
         washDOWN();
-        wncInfo();	// Send back updated data
+        wncInfo();
     }
-    else if (webAction == "3")	// Cure Time Increase by one minute
+    else if (webAction == "3")  // Cure Time Increase by one minute
     {
         cureUP();
-        wncInfo();	// Send back updated data
+        wncInfo();
     }
-    else if (webAction == "4")	// Cure Time Decrease by one minute
+    else if (webAction == "4")  // Cure Time Decrease by one minute
     {
         cureDOWN();
-        wncInfo();	// Send back updated data
+        wncInfo();
     }
-    else if (webAction == "5")	// Commit time changes to EEPROM
+    else if (webAction == "5")  // Commit time changes to EEPROM
     {
         EEPROM.commit();
         sendToOLED();
@@ -481,12 +481,12 @@ void wncChange()
         display.print("settings");
         display.display();
         alertTrigger = millis() + 4000;
-        wncInfo();	// Send back updated data
+        wncInfo();  // Send back updated data
     }
-    else if (webAction == "6")	// Stop All
+    else if (webAction == "6")  // Stop All
     {
         StopAll();
-        wncInfo();	// Send back updated data
+        wncInfo();  // Send back updated data
     }
 }
 
@@ -503,54 +503,54 @@ void handleEepromSave()
     handleRoot();
 }
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//// SETUP	
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//// SETUP          SETUP          SETUP          SETUP          SETUP          SETUP          SETUP	
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 void setup()
 {
-   	// SET UP COMMINUCATIONS
-    Serial.begin(9600);	// Set board's serial speed for terminal communcation
-    WiFi.softAP(ssid, password);	// Set board's ssid and password
-    WiFi.softAPConfig(local_ip, gateway, subnet);	// Set board's ip, gateway, and subnet
-    webota.init(777, "/update");	// Setup web over-the-air update port and directory
+    // SET UP COMMINUCATIONS
+    Serial.begin(9600);  // Set board's serial speed for terminal communcation
+    WiFi.softAP(ssid, password);  // Set board's ssid and password
+    WiFi.softAPConfig(local_ip, gateway, subnet);  // Set board's ip, gateway, and subnet
+    webota.init(777, "/update");  // Setup web over-the-air update port and directory
 
-   	// INITIALIZE EEPROM
+   // INITIALIZE EEPROM
     EEPROM.begin(EEPROM_SIZE);
-    washMinutes = EEPROM.read(0);	// Read washMinutes from EEPROM location 0
-    cureMinutes = EEPROM.read(1);	// Read cureMinutes from EEPROM location 1
+    washMinutes = EEPROM.read(0);  // Read washMinutes from EEPROM location 0
+    cureMinutes = EEPROM.read(1);  // Read cureMinutes from EEPROM location 1
 
-   	// SET UP STEPPER CONTROL
-    stepper.setMaxSpeed(8000);	// Set max stepper speed to 8000
-    stepper.setAcceleration(100);	// Set stepper acceleration to 100
+   // SET UP STEPPER CONTROL
+    stepper.setMaxSpeed(8000);  // Set max stepper speed to 8000
+    stepper.setAcceleration(100);  // Set stepper acceleration to 100
 
-   	// DEFINE GPIO FUNCTIONS
-    pinMode(PROX, INPUT);	// Set PROX pin as an input
+   // DEFINE GPIO FUNCTIONS
+    pinMode(PROX, INPUT);  // Set PROX pin as an input
 
-    pinMode(motorEnable, OUTPUT);	// Set motorEnable pin as an output
-    digitalWrite(motorEnable, LOW);	// Turn motor off
+    pinMode(motorEnable, OUTPUT);  // Set motorEnable pin as an output
+    digitalWrite(motorEnable, LOW);  // Turn motor off
 
-    pinMode(UVLED, OUTPUT);	// Set UVLED pin as an output
-    digitalWrite(UVLED, LOW);	// ! ! ! NEVER SET THIS HIGH ! MOSFET DAMAGE WILL OCCUR ! ! !
+    pinMode(UVLED, OUTPUT);  // Set UVLED pin as an output
+    digitalWrite(UVLED, LOW);  // ! ! ! NEVER SET THIS HIGH ! MOSFET DAMAGE WILL OCCUR ! ! !
 
-    pinMode(FAN, OUTPUT);	// Set FAN pin as an output
-    digitalWrite(FAN, LOW);	// ! ! ! NEVER SET THIS HIGH ! MOSFET DAMAGE WILL OCCUR ! ! !
+    pinMode(FAN, OUTPUT);  // Set FAN pin as an output
+    digitalWrite(FAN, LOW);  // ! ! ! NEVER SET THIS HIGH ! MOSFET DAMAGE WILL OCCUR ! ! !
 
-    pinMode(SW1, INPUT);	// Set SW1 pin as an input
-    debouncedSW1.attach(SW1);	// attach debouncedSW1 to SW1
-    debouncedSW1.interval(25);	// 25 ms bounce interval
+    pinMode(SW1, INPUT);  // Set SW1 pin as an input
+    debouncedSW1.attach(SW1);  // attach debouncedSW1 to SW1
+    debouncedSW1.interval(25);  // 25 ms bounce interval
 
-    pinMode(SW2, INPUT);	// Set SW2 pin as an input
-    debouncedSW2.attach(SW2);	// attach debouncedSW2 to SW2
-    debouncedSW2.interval(25);	// 25 ms bounce interval 
+    pinMode(SW2, INPUT);  // Set SW2 pin as an input
+    debouncedSW2.attach(SW2);  // attach debouncedSW2 to SW2
+    debouncedSW2.interval(25);  // 25 ms bounce interval 
 
-    pinMode(SW3, INPUT);	// Set SW3 pin as an input
-    debouncedSW3.attach(SW3);	// attach debouncedSW3 to SW3
-    debouncedSW3.interval(25);	// 25 ms bounce interval
+    pinMode(SW3, INPUT);  // Set SW3 pin as an input
+    debouncedSW3.attach(SW3);  // attach debouncedSW3 to SW3
+    debouncedSW3.interval(25);  // 25 ms bounce interval
 
-   	// OLED INITIALIZATION
-    Wire.begin(21, 22);	//OLED I2C Pins
-    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))	// Address for the I2C OLED screen
+   // OLED INITIALIZATION
+    Wire.begin(21, 22);  //OLED I2C Pins
+    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))  // Address for the I2C OLED screen
     {
         Serial.println(F("SSD1306 allocation failed"));
         for (;;);
@@ -563,9 +563,9 @@ void setup()
     display.display();
     alertTrigger = now + 4000;
 
-   	// WEB PAGE CONFIGURATIONS
+    // WEB PAGE CONFIGURATIONS
 
-   	// WHEN THE SERVER GETS A REQUEST FOR A PAGE, CALL ITS FUNCTION.
+    // WHEN THE SERVER GETS A REQUEST FOR A PAGE, CALL ITS FUNCTION.
     server.on("/", handleRoot);
     server.on("/wncchange", wncChange);
     server.on("/wncinfo", wncInfo);
@@ -575,9 +575,9 @@ void setup()
     server.begin();
     Serial.print("SETUP Complete");
 
-   	// WAIT FOR SW3(PIN 0) TO RETURN TO A NORMAL INPUT
-    actionTrigger = now;	// Reset the time trigger
-    while ((now - actionTrigger) < 2000)	// 2 seconds to clear SW3
+    // WAIT FOR SW3(PIN 0) TO RETURN TO A NORMAL INPUT
+    actionTrigger = now;  // Reset the time trigger
+    while ((now - actionTrigger) < 2000)  // 2 seconds to clear SW3
     {
         debouncedSW3.update();
         if (debouncedSW3.fell())
@@ -592,29 +592,29 @@ void setup()
     Serial.println(now);
 }
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//// MAIN LOOP	
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//// LOOP          LOOP          LOOP          LOOP          LOOP          LOOP          LOOP          LOOP	
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 void loop()
 {
-   	// RUN OTA UPDATE SERVICE  
+    // RUN OTA UPDATE SERVICE  
     webota.handle();
 
-   	// RUN THE WEB SERVER
-    server.handleClient();
+   // RUN THE WEB SERVER
+   server.handleClient();
 
-   	// OLED STATUS CHECK - WASHING
-    if (washActive == true && now > alertTrigger)
-    {
-        sendToOLED();
-        display.println("Washing...");
-        display.print((((washSeconds *1000) - (now - actionTrigger)) / 60000));
-        display.println(" minutes remaining");
-        display.display();
+   // OLED STATUS CHECK - WASHING
+   if (washActive == true && now > alertTrigger)
+   {
+       sendToOLED();
+       display.println("Washing...");
+       display.print((((washSeconds *1000) - (now - actionTrigger)) / 60000));
+       display.println(" minutes remaining");
+       display.display();
     }
-
-   	// OLED STATUS CHECK - CURING
+   
+    // OLED STATUS CHECK - CURING
     if (cureActive == true && now > alertTrigger)
     {
         sendToOLED();
@@ -624,7 +624,7 @@ void loop()
         display.display();
     }
 
-   	// OLED STATUS CHECK - READY
+    // OLED STATUS CHECK - READY
     if (cureActive == false && washActive == false && IRstate == LOW && now > alertTrigger)
     {
         sendToOLED();
@@ -634,61 +634,61 @@ void loop()
         display.display();
     }
 
-   	// INTERLOCK CHECK
+    // INTERLOCK CHECK
     IRstate = digitalRead(PROX);
     if ((IRstate == HIGH && washActive == true) || (IRstate == HIGH && cureActive == true))
     {
         StopAll();
     }
 
-   	// WASH CYCLE CHECK 
+    // WASH CYCLE CHECK 
     if (washActive == true && ((now - actionTrigger) > (washSeconds *1000)))
     {
         Serial.println("Washing stopped by timer.");
         washoff();
     }
 
-   	// CURE CYCLE CHECK  
+    // CURE CYCLE CHECK  
     if (cureActive == true && ((now - actionTrigger) > (cureSeconds *1000)))
     {
         Serial.println("UV Cure stopped by timer.");
         cureoff();
     }
 
-   	// STEPPER MOTOR CHECK - IF WASHING, CHECK STEPS TO GO AND REVERSE DIRECTION IF STEPS HAVE BEEN COMPLETED
+    // STEPPER MOTOR CHECK - IF WASHING, CHECK STEPS TO GO AND REVERSE DIRECTION IF STEPS HAVE BEEN COMPLETED
     if (stepper.distanceToGo() == 0 && washActive == true)
     {
         if (washDirection == true)
         {
-            stepper.setCurrentPosition(0);	// Set starting position as 0
-            stepper.moveTo((washSteps *-1));	// Move stepper x steps  
+            stepper.setCurrentPosition(0);  // Set starting position as 0
+            stepper.moveTo((washSteps *-1));  // Move stepper x steps  
             Serial.println("Changing stepper direction to reverse.");
             washDirection = false;
         }
         else
         {
-            stepper.setCurrentPosition(0);	// Set starting position as 0
-            stepper.moveTo(washSteps);	// Move stepper x steps
+            stepper.setCurrentPosition(0);  // Set starting position as 0
+            stepper.moveTo(washSteps);  // Move stepper x steps
             Serial.println("Changing stepper direction to forward.");
             washDirection = true;
         }
     }
 
-   	// STEPPER MOTOR CHECK - IF WASHING, KEEP STEPPER MOVING
+    // STEPPER MOTOR CHECK - IF WASHING, KEEP STEPPER MOVING
     if (washActive == true)
     {
         stepper.run();
     }
 
-   	// STEPPER MOTOR CHECK - IF CURING, KEEP STEPPER MOVING
+    // STEPPER MOTOR CHECK - IF CURING, KEEP STEPPER MOVING
     if (cureActive == true)
     {
         stepper.runSpeed();
     }
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//// SWITCH CONTROL	
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//// SWITCH CONTROL          SWITCH CONTROL          SWITCH CONTROL          SWITCH CONTROL	
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
    // UPDATE THE BOUNCE INSTANCES
    debouncedSW1.update();
