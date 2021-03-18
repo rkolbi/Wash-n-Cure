@@ -440,7 +440,9 @@ void handleNotFound()
     server.send(404, "text/plain", "404: Page does not exist.\n\n");
 }
 
-// This send the JSON formatted data to the webpage.
+// This sends the JSON formatted data to the webpage. The systemStatus portion gives one of three posible conditions with time
+// remaining; 100 = Idle/Ready, 2xx = Curing with xx minutes to go, 3xx - Washing with xx minutes to go. This three digit status
+// is received by the index/root page and parsed the java to yeild a more human status such as, "Washing, 20 minutes to go."
 void wncInfo()
 {
     if (cureActive == false && washActive == false) systemStatus = 100;
