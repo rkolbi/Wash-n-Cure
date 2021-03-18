@@ -8,24 +8,24 @@
 -Over the Air (OTA) firmware updating, access via index page (10.0.1.1).
 
 -Simple web interface to change wash and cure times, commit new times to EEPROM, OTA firmware update (.BIN
-  file), and stop all functions.
+ file), and stop all functions.
 
 -Button functions as: 
          When no functions are active: SW1 = Starts Cure        SW2 = Starts Wash       SW3 = EEPROM Menu
          Wash or Cure active:          SW1 = Run time +1        SW2 = Run time -1       SW3 = Stops function
 
 -No times changes are fully committed to EEPROM (reboot will revert back) unless the 'Save Times' function is
-  selected from the web interface or from EEPROM menu.
-   EEPROM Menu: (User has one minute to make selection, else it exits the menu loop)
+ selected from the web interface or from EEPROM menu.
+        EEPROM Menu: (User has one minute to make selection, else it exits the menu loop)
 	-SW1 will eeprom.write wash/cure time to 'factory defaults'
 	-SW2 will eeprom.write wash/cure times if they differ the eeprom.read.
 	-SW3 will cancel the menu, returning to 'Ready'
 
 -Wash and Cure functins use different stepper motor controls. 
-   -Cure uses the "stepper.setSpeed(500)" and requires "stepper.runSpeed()" to keep moving - yeilding a
-     constants turning motor.
-   -Wash uses "stepper.moveTo(washSteps)", steps to move set by "int washSteps = 2000;", and requires
-     "stepper.run();" to keep moving - allowing the motor to have directional change.
+-Cure uses the "stepper.setSpeed(500)" and requires "stepper.runSpeed()" to keep moving - yeilding a
+ constants turning motor.
+-Wash uses "stepper.moveTo(washSteps)", steps to move set by "int washSteps = 2000;", and requires
+ "stepper.run();" to keep moving - allowing the motor to have directional change.
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -38,11 +38,12 @@ To do:
   During wash or cure cycle - have SW3 or Interlock initiate pause function.
 	-OLED write Paused.
 	-Pause state to calculate time left and store it in timePause. On resume, this time will be added to
-          now and the cycle will run until completion.
+         now and the cycle will run until completion.
 	-Pasue will stop motor, LED, and fan.
 	-Pressing SW3 while in Pause state will hard stop the running function and return to 'Ready'. This
-          means a double-press will hard stop the cycle.
-	-Pressing SW1 or SW2 while continue with cycle unless Interlock is open. If Interlock is open, SW1 &SW2 will be ignored.
+         means a double-press will hard stop the cycle.
+	-Pressing SW1 or SW2 while continue with cycle unless Interlock is open. If Interlock is open, SW1
+	 and SW2 will be ignored.
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -81,56 +82,56 @@ lib_deps =
 #include "index.html"
 
 // UV, IR, AND SW PINS AND CONTROL
-#define UVLED 32	// PIN:32 UV LED
-#define FAN 27	// PIN:27 Fan
-#define PROX 4	// PIN:04 Lid Proximity Sensor
-#define SW1 35	// PIN:35 SW1 Button
-#define SW2 34	// PIN:34 SW2 Button
-#define SW3 0	// PIN:00 SW3 Button (Also used for programming mode)
+#define UVLED 32  // PIN:32 UV LED
+#define FAN 27  // PIN:27 Fan
+#define PROX 4  // PIN:04 Lid Proximity Sensor
+#define SW1 35  // PIN:35 SW1 Button
+#define SW2 34  // PIN:34 SW2 Button
+#define SW3 0  // PIN:00 SW3 Button (Also used for programming mode)
 
-int IRstate;	// Lid Proximity Sensor state
+int IRstate;  // Lid Proximity Sensor state
 
-Bounce debouncedSW1 = Bounce();	// Bounce instance for SW1
-Bounce debouncedSW2 = Bounce();	// Bounce instance for SW3
-Bounce debouncedSW3 = Bounce();	// Bounce instance for SW3
-#define btn delay(500)	// Wait function following button detection
+Bounce debouncedSW1 = Bounce();  // Bounce instance for SW1
+Bounce debouncedSW2 = Bounce();  // Bounce instance for SW3
+Bounce debouncedSW3 = Bounce();  // Bounce instance for SW3
+#define btn delay(500)  // Wait function following button detection
 
 // WASH AND CURE VARIABLES
-#define CureDefault 20	// Factory restore value
-#define WashDefault 8	// Factory restore value
-int washSteps = 2000;	// Number of motor step before reversing direction when washing
-boolean washDirection = false;	// Initial wash direction
-boolean washActive = false;	// Initial wash state
-boolean cureActive = false;	// Initial cure state
-int washSeconds;	// int for wash cycle seconds
-int cureSeconds;	// int for cure cycle seconds
-int systemStatus;	// systemStatus to pass to web page. 100 = Ready, 2xx = cure and minutes,
-// 3xx = wash and minutes.
+#define CureDefault 20  // Factory restore value
+#define WashDefault 8  // Factory restore value
+int washSteps = 2000;  // Number of motor step before reversing direction when washing
+boolean washDirection = false;  // Initial wash direction
+boolean washActive = false;  // Initial wash state
+boolean cureActive = false;  // Initial cure state
+int washSeconds;  // int for wash cycle seconds
+int cureSeconds;  // int for cure cycle seconds
+int systemStatus;  // systemStatus to pass to web page. 100 = Ready, 2xx = cure and minutes,
+//                    3xx = wash and minutes.
 
 // TIMING VARIABLES
-#define now millis()	// now = millis() for easier readability
-unsigned long actionTrigger = 0;	// time trigger for logic of wash and cure cycles
-unsigned long alertTrigger = 0;	// time trigger for OLED display messages
+#define now millis()  // now = millis() for easier readability
+unsigned long actionTrigger = 0;  // time trigger for logic of wash and cure cycles
+unsigned long alertTrigger = 0;  // time trigger for OLED display messages
 
 // EEPROM STORAGE
 #include <EEPROM.h>
-#define EEPROM_SIZE 2	// Define the number of bytes we want to access in the EEPROM
-int washMinutes;	// Store the washing timer value
-int cureMinutes;	// Store the curing timer value
+#define EEPROM_SIZE 2  // Define the number of bytes we want to access in the EEPROM
+int washMinutes;  // Store the washing timer value
+int cureMinutes;  // Store the curing timer value
 
-// OLED SUPPORT
+// OLED SUPPORT for SSD1306 display connected to I2C (SDA, SCL pins)
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#define SCREEN_WIDTH 128	// OLED display width, in pixels
-#define SCREEN_HEIGHT 64	// OLED display height, in pixels
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);	// SSD1306 display connected to I2C (SDA, SCL pins)
+#define SCREEN_WIDTH 128  // OLED display width, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 // STEPER DRIVER SUPPORT
 #include <AccelStepper.h>
-#define dirPin 25	// Stepper driver DIR pin
-#define stepPin 33	// Stepper driver STP pin
-#define motorInterfaceType 1	// Must be set to 1 when using a driver
-#define motorEnable 26	// Stepper driver VDD pin
+#define dirPin 25  // Stepper driver DIR pin
+#define stepPin 33  // Stepper driver STP pin
+#define motorInterfaceType 1  // Must be set to 1 when using a driver
+#define motorEnable 26  // Stepper driver VDD pin
 AccelStepper stepper = AccelStepper(motorInterfaceType, stepPin, dirPin);
 
 // NETWORKING SUPPORT
@@ -149,10 +150,10 @@ IPAddress subnet(255, 255, 255, 0);
 // READY THE OLED DISPLAY
 void sendToOLED()
 {
-    display.clearDisplay();	// Clear the OLED display
-    display.setTextSize(2);	// Set text size for display
-    display.setTextColor(WHITE);	// Set text color for display
-    display.setCursor(0, 10);	// Position the cursor
+    display.clearDisplay();  // Clear the OLED display
+    display.setTextSize(2);  // Set text size for display
+    display.setTextColor(WHITE);  // Set text color for display
+    display.setCursor(0, 10);  // Position the cursor
 }
 
 // START THE WASH FUNCTION
@@ -163,16 +164,16 @@ void wash()
     Serial.print("Wash value from memory: ");
     Serial.println(washMinutes);
 
-    washSeconds = washMinutes * 60;	// Calculate wash seconds from washMinutes (minutes)
-    washActive = true;	// Set wash state to true
-    actionTrigger = now;	// Reset the time trigger
-    digitalWrite(FAN, HIGH);	// Turn on the fan
-    digitalWrite(motorEnable, HIGH);	// Enable the motor
-    stepper.setSpeed(8000);	// Set the motor speed
-    stepper.setAcceleration(100);	// Set the stepper acceleration
-    stepper.setCurrentPosition(0);	// Set starting position as 0
-    stepper.moveTo(washSteps);	// Move stepper x steps
-    washDirection = true;	// Motor moves clockwise
+    washSeconds = washMinutes * 60;  // Calculate wash seconds from washMinutes (minutes)
+    washActive = true;  // Set wash state to true
+    actionTrigger = now;  // Reset the time trigger
+    digitalWrite(FAN, HIGH);  // Turn on the fan
+    digitalWrite(motorEnable, HIGH);  // Enable the motor
+    stepper.setSpeed(8000);  // Set the motor speed
+    stepper.setAcceleration(100);  // Set the stepper acceleration
+    stepper.setCurrentPosition(0);  // Set starting position as 0
+    stepper.moveTo(washSteps);  // Move stepper x steps
+    washDirection = true;  // Motor moves clockwise
 
     sendToOLED();
     display.println("Starting");
@@ -190,14 +191,14 @@ void cure()
     Serial.println("Cure value from memory");
     Serial.println(cureMinutes);
 
-    cureSeconds = cureMinutes * 60;	// Calculate wash seconds from cureMinutes (minutes)
-    cureActive = true;	// Set cure state to true
-    actionTrigger = now;	// Reset the time trigger
-    digitalWrite(FAN, HIGH);	// Turn on the fan
-    digitalWrite(motorEnable, HIGH);	// Enable the motor
-    digitalWrite(UVLED, HIGH);	// Turn on the UV lamp
-    stepper.setSpeed(500);	// Set the motor speed
-    stepper.runSpeed();	// Start the motor
+    cureSeconds = cureMinutes * 60;  // Calculate wash seconds from cureMinutes (minutes)
+    cureActive = true;  // Set cure state to true
+    actionTrigger = now;  // Reset the time trigger
+    digitalWrite(FAN, HIGH);  // Turn on the fan
+    digitalWrite(motorEnable, HIGH);  // Enable the motor
+    digitalWrite(UVLED, HIGH);  // Turn on the UV lamp
+    stepper.setSpeed(500);  // Set the motor speed
+    stepper.runSpeed();  // Start the motor
 
     sendToOLED();
     display.println("Starting");
@@ -249,7 +250,7 @@ void StopAll()
     digitalWrite(UVLED, LOW);
     digitalWrite(motorEnable, LOW);
 
-    cureActive = false;	// Set cure state to false
+    cureActive = false;  // Set cure state to false
     washActive = false;
     Serial.println("Stopping all functions!");
 
