@@ -20,12 +20,12 @@ System Status: <span id="status"></span>
   <tr><td><button onclick="send(2)">&#x2207 Wash &#x2207</button></td><td></td><td><button onclick="send(4)">&#x2207 Cure &#x2207</button></td></tr>
   <tr><td></td><td><br></td><td></td></tr></table>
 <br><br>
-<table><tr><td><button onclick="send(6)">&#x220E STOP &#x220E</button></td></tr><tr> <td><button onclick="send(5)">&#x21AF SAVE &#x21AF</button></td></tr><tr> <td><br><br><br><br><br><small>Update firmware at:</small><br><small><span id="ESPip">0</span>:777/update</small></td></tr></table></div>
+<table><tr><td><button onclick="send(6)">&#x220E STOP &#x220E</button></td></tr><tr> <td><button onclick="send(5)">&#x21AF SAVE &#x21AF</button></td></tr></table>
+</div>
   
 <script>
 document.addEventListener("DOMContentLoaded", function() {
   getData();
-  document.getElementById("ESPip").innerHTML = location.host;
 });  
 function send(data) 
 {
@@ -37,7 +37,7 @@ function send(data)
 setInterval(function() 
 {
   getData();
-}, 4000); 
+}, 2000); 
 function getData() {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
@@ -63,7 +63,7 @@ function getData() {
   xhttp.send();
 }
 </script>
-<div class="footer"><p>revision: 0.7.1</p></div>
+<div class="footer"><p>revision: 0.7.5</p></div>
 </center>
 </body>
 </html>

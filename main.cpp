@@ -1,7 +1,7 @@
 /*
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//// Wash-n-Cure Rev 0.7.1 (ALPHA)
+//// Wash-n-Cure Rev 0.7.5 (ALPHA)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 -WiFi manager installed. OLED will display current IP for 10 seconds upon boot/reboot.
 
@@ -81,6 +81,10 @@ lib_deps =
 #include <Arduino.h>
 #include <Wire.h>
 #include <Bounce2.h>
+    #include <iostream>
+    #include <string>
+    #include <sstream>
+    using namespace std;
 #include "index.html"
 
 // UV, IR, AND SW PINS AND CONTROL
@@ -598,7 +602,7 @@ void setup()
     }
 
     sendToOLED();
-    display.println("WnC 0.7.1");
+    display.println("WnC 0.7.5");
     display.println(WiFi.localIP());
     display.display();
     alertTrigger = now + 10000;
