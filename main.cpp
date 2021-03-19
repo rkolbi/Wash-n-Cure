@@ -1,11 +1,11 @@
 /*
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//// Wash-n-Cure Rev 0.7.0 (ALPHA)
+//// Wash-n-Cure Rev 0.7.1 (ALPHA)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
--AP hard coded to SSID: "Wash-n-Cure", Password: "password", IP: 10.0.1.1
+-WiFi manager installed. OLED will display current IP for 10 seconds upon boot/reboot.
 
--Over the Air (OTA) firmware updating, access via index page (10.0.1.1).
+-Over the Air (OTA) firmware updating. Update URL displayed, but not linked - must copy/paste into browser.
 
 -Simple web interface employing simple AJAX & JSON to change wash and cure times, commit new times to EEPROM,
  OTA firmware update (.BIN file), and stop all functions.
@@ -138,12 +138,14 @@ AccelStepper stepper = AccelStepper(motorInterfaceType, stepPin, dirPin);
 
 // NETWORKING SUPPORT
 #include <WebOTA.h>
+#include <WiFiManager.h>
+#include <ESPmDNS.h>
 
 const char *ssid = "Wash-n-Cure";
 const char *password = "password";
-IPAddress local_ip(10, 0, 1, 1);
-IPAddress gateway(10, 0, 1, 1);
-IPAddress subnet(255, 255, 255, 0);
+const char *hostname = "washncure";
+WiFiManager wm;
+WebServer server(80);
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //// FUNCTIONS          FUNCTIONS          FUNCTIONS          FUNCTIONS          FUNCTIONS         FUNCTIONS	
@@ -424,9 +426,6 @@ void eepromMenu()
 //// WEB INTERFACE         WEB INTERFACE          WEB INTERFACE          WEB INTERFACE         WEB INTERFACE
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-// SET WEBSERVER PORT
-WebServer server(80);
-
 // SERVER THE CONTENTS OF THE INDEX.HTML FILE
 void handleRoot()
 {
@@ -516,9 +515,46 @@ void setup()
 {
     // SET UP COMMINUCATIONS
     Serial.begin(9600);  // Set board's serial speed for terminal communcation
-    WiFi.softAP(ssid, password);  // Set board's ssid and password
-    WiFi.softAPConfig(local_ip, gateway, subnet);  // Set board's ip, gateway, and subnet
+
+    WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
+    // WiFi.mode(WiFi_STA); // it is a good practice to make sure your code sets wifi mode how you want it.
+
+    wm.setHostname(hostname);
+
+    //WiFiManager, Local intialization. Once its business is done, there is no need to keep it around
+    WiFiManager wm;
+
+    //reset settings - wipe credentials for testing
+    //wm.resetSettings();
+
+    // Automatically connect using saved credentials,
+    // if connection fails, it starts an access point with the specified name ( "Wash-n-Cure"),
+    // if empty will auto generate SSID, if password is blank it will be anonymous AP (wm.autoConnect())
+    // then goes into a blocking loop awaiting configuration and will return success result
+
+    bool res;
+    // res = wm.autoConnect(); // auto generated AP name from chipid
+    // res = wm.autoConnect("Wash-n-Cure"); // anonymous ap
+    res = wm.autoConnect("Wash-n-Cure","password"); // password protected ap
+
+    if(!res) {
+        Serial.println("Failed to connect");
+        // ESP.restart();
+    } 
+    else {
+        //if you get here you have connected to the WiFi    
+        Serial.println("WiFi Connected...");
+    }
+
+    if(!MDNS.begin(hostname)) {
+     Serial.println("Error starting mDNS");
+     return;
+    }
+    MDNS.addService("http", "tcp", 80);
+    Serial.println(WiFi.localIP());
+
     webota.init(777, "/update");  // Setup web over-the-air update port and directory
+
 
    // INITIALIZE EEPROM
     EEPROM.begin(EEPROM_SIZE);
@@ -562,11 +598,10 @@ void setup()
     }
 
     sendToOLED();
-    display.println("Wash&Cure");
-    display.println(" ");
-    display.print(" r0.7.0");
+    display.println("WnC 0.7.1");
+    display.println(WiFi.localIP());
     display.display();
-    alertTrigger = now + 4000;
+    alertTrigger = now + 10000;
 
     // WEB PAGE CONFIGURATIONS
 
@@ -595,6 +630,7 @@ void setup()
     Serial.println(" ");
     Serial.print("Initialization time: ");
     Serial.println(now);
+
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -603,6 +639,7 @@ void setup()
 
 void loop()
 {
+    //MDNS.update();
     // RUN OTA UPDATE SERVICE  
     webota.handle();
 
