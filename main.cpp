@@ -81,10 +81,6 @@ lib_deps =
 #include <Arduino.h>
 #include <Wire.h>
 #include <Bounce2.h>
-    #include <iostream>
-    #include <string>
-    #include <sstream>
-    using namespace std;
 #include "index.html"
 
 // UV, IR, AND SW PINS AND CONTROL
