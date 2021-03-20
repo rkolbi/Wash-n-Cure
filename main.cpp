@@ -152,6 +152,7 @@ WebServer server(80);
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 // READY THE OLED DISPLAY
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void sendToOLED()
 {
     display.clearDisplay();  // Clear the OLED display
@@ -161,6 +162,7 @@ void sendToOLED()
 }
 
 // START THE WASH FUNCTION
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void wash()
 {
     Serial.println("Wash Cycle ON!");
@@ -188,6 +190,7 @@ void wash()
 }
 
 // START THE CURE FUNCTION
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void cure()
 {
     Serial.println("UV Cycle ON!");
@@ -213,6 +216,7 @@ void cure()
 }
 
 // STOP THE WASH FUNCTION
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void washoff()
 {
     digitalWrite(FAN, LOW);
@@ -230,6 +234,7 @@ void washoff()
 }
 
 // STOP THE CURE FUNCTION
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void cureoff()
 {
     digitalWrite(FAN, LOW);
@@ -248,6 +253,7 @@ void cureoff()
 }
 
 // STOP ALL WASH AND CURE FUNCTION
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void StopAll()
 {
     digitalWrite(FAN, LOW);
@@ -259,8 +265,8 @@ void StopAll()
     Serial.println("Stopping all functions!");
 
     sendToOLED();
-    display.println("Interlock");
-    display.println("  open!  ");
+    display.println("   All");
+    display.println("   Stop  ");
     display.print("");
     display.display();
     alertTrigger = now + 2000;
@@ -268,6 +274,7 @@ void StopAll()
 }
 
 // INCREASE WASH TIME
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void washUP()
 {
     washMinutes = EEPROM.read(0);
@@ -287,6 +294,7 @@ void washUP()
 }
 
 // DECREASE WASH TIME
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void washDOWN()
 {
     washMinutes = EEPROM.read(0);
@@ -312,6 +320,7 @@ void washDOWN()
 }
 
 // INCREASE CURE TIME
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void cureUP()
 {
     cureMinutes = EEPROM.read(1);
@@ -331,6 +340,7 @@ void cureUP()
 }
 
 // DECREASE CURE TIME
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void cureDOWN()
 {
     cureMinutes = EEPROM.read(1);
@@ -356,6 +366,7 @@ void cureDOWN()
 }
 
 // EEPROM MENU ACTIONS
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void eepromMenu()
 {
     Serial.print("EEPROM Menu actions");
@@ -427,6 +438,7 @@ void eepromMenu()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 // SERVER THE CONTENTS OF THE INDEX.HTML FILE
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void handleRoot()
 {
     String s = webpage;
@@ -434,22 +446,27 @@ void handleRoot()
 }
 
 // 404 - NOT FOUND WEB RESPONSE
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void handleNotFound()
 {
     server.send(404, "text/plain", "404: Page does not exist.\n\n");
 }
 
+// SEND JSON INFORMATION TO WEB PAGE
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // This sends the JSON formatted data to the webpage. The systemStatus portion gives one of three posible conditions with time
 // remaining; 100 = Idle/Ready, 2xx = Curing with xx minutes to go, 3xx - Washing with xx minutes to go. This three digit status
 // is received by the index/root page and parsed the java to yeild a more human status such as, "Washing, 20 minutes to go."
 void wncInfo()
 {
     if (cureActive == false && washActive == false) systemStatus = 100;
-    if (cureActive == true && washActive == false) systemStatus = 200 + ((((cureSeconds *1000) - (now - actionTrigger)) / 60000));
-    if (cureActive == false && washActive == true) systemStatus = 300 + ((((washSeconds *1000) - (now - actionTrigger)) / 60000));
+    if (cureActive == true && washActive == false) systemStatus = 201 + ((((cureSeconds *1000) - (now - actionTrigger)) / 60000));
+    if (cureActive == false && washActive == true) systemStatus = 301 + ((((washSeconds *1000) - (now - actionTrigger)) / 60000));
     server.send(200, "text/plane", "[" + String(washMinutes) + "," + String(cureMinutes) + "," + String(systemStatus) + "]");
 }
 
+// RECEIVE COMMAND FROM WEB PAGE
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void wncChange()
 {
     String webAction = server.arg("go");
@@ -495,6 +512,7 @@ void wncChange()
 }
 
 // EepromSave WEB RESPONSE
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void handleEepromSave()
 {
     EEPROM.commit();
@@ -510,7 +528,6 @@ void handleEepromSave()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //// SETUP           SETUP          SETUP            SETUP            SETUP           SETUP            SETUP	
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
 void setup()
 {
     // SET UP COMMINUCATIONS
@@ -636,7 +653,6 @@ void setup()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //// LOOP         LOOP           LOOP          LOOP          LOOP           LOOP          LOOP          LOOP	
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
 void loop()
 {
     //MDNS.update();
@@ -651,8 +667,23 @@ void loop()
    {
        sendToOLED();
        display.println("Washing...");
-       display.print((((washSeconds *1000) - (now - actionTrigger)) / 60000));
-       display.println(" minutes remaining");
+       if ((((washSeconds *1000) - (now - actionTrigger)) / 60000) == 0) 
+       {
+           display.println("<1 minute");
+       }
+       else
+       {
+           display.print((((washSeconds *1000) - (now - actionTrigger)) / 60000));
+            if ((((washSeconds *1000) - (now - actionTrigger)) / 60000) > 1)
+            {
+                display.println(" minutes");    
+            }
+            else
+            {
+                display.println(" minute");
+            }
+       }
+       display.println("remaining.");
        display.display();
     }
    
@@ -661,8 +692,23 @@ void loop()
     {
         sendToOLED();
         display.println("Curing...");
-        display.print((((cureSeconds *1000) - (now - actionTrigger)) / 60000));
-        display.println(" minutes remaining");
+        if ((((cureSeconds *1000) - (now - actionTrigger)) / 60000) == 0) 
+        {
+            display.println("<1 minute");
+        }
+        else
+        {
+            display.print((((cureSeconds *1000) - (now - actionTrigger)) / 60000));
+            if ((((cureSeconds *1000) - (now - actionTrigger)) / 60000) > 1)
+            {
+                display.println(" minutes");    
+            }
+            else
+            {
+                display.println(" minute");
+            }
+        }
+        display.println("remaining.");
         display.display();
     }
 

@@ -32,7 +32,8 @@ function send(data)
   var xhttp = new XMLHttpRequest();
   xhttp.open("GET", "wncchange?go="+data, true);
   xhttp.send();
-  getData();
+  setTimeout(function() { getData(); }, 3);
+
 }
 setInterval(function() 
 {
@@ -48,12 +49,24 @@ function getData() {
         if (myArr[2] == 100) {
           document.getElementById("status").innerHTML = "Ready.";
         }
-        if (myArr[2] > 200) {
-          var mleft = myArr[2] - 200;
+        if (myArr[2] == 201) {
+          document.getElementById("status").innerHTML = "Currently curing, <1 minute remaining.";
+        }
+        if (myArr[2] == 202) {
+          document.getElementById("status").innerHTML = "Currently curing, 1 minute remaining.";
+        }
+        if (myArr[2] > 202) {
+          var mleft = myArr[2] - 201;
           document.getElementById("status").innerHTML = "Currently curing, " + mleft + " minutes remaining.";
         }
-        if (myArr[2] > 300) {
-          var mleft = myArr[2] - 300;
+        if (myArr[2] == 301) {
+          document.getElementById("status").innerHTML = "Currently washing, <1 minute remaining.";
+        }      
+        if (myArr[2] == 302) {
+          document.getElementById("status").innerHTML = "Currently washing, 1 minute remaining.";
+        }   
+        if (myArr[2] > 302) {
+          var mleft = myArr[2] - 301;
           document.getElementById("status").innerHTML = "Currently washing, " + mleft + " minutes remaining.";
         }
       this.responseText;
