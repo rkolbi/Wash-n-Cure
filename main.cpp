@@ -1,11 +1,11 @@
 /*
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//// Wash-n-Cure Rev 0.7.5 (ALPHA)
+//// Wash-n-Cure Rev 0.7.6 (ALPHA)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 -WiFi manager installed. OLED will display current IP for 10 seconds upon boot/reboot.
 
--Over the Air (OTA) firmware updating. Update URL displayed, but not linked - must copy/paste into browser.
+-Over the Air (OTA) firmware updating. Update link is the revision number displayed in the footer.
 
 -Simple web interface employing simple AJAX & JSON to change wash and cure times, commit new times to EEPROM,
  OTA firmware update (.BIN file), and stop all functions.
@@ -615,7 +615,7 @@ void setup()
     }
 
     sendToOLED();
-    display.println("WnC 0.7.5");
+    display.println("WnC 0.7.6");
     display.println(WiFi.localIP());
     display.display();
     alertTrigger = now + 10000;

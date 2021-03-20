@@ -6,6 +6,10 @@ const char webpage[] PROGMEM = R"=====(
   <meta name=viewport content='width=400'>
 <style type="text/css">
 body { font-family: Arial; margin: 0; color: #212f3c; }
+a:link { text-decoration: none; color: #ebedef;}
+a:visited { text-decoration: none; color: #ebedef; }
+a:hover { text-decoration: underline; color: #ebedef; }
+a:active { text-decoration: underline; color: #ebedef; }
 .header { padding: 5px; text-align: center; background: #85929e; color: #1c2833; font-size: 20px; }
 .footer { position: fixed; left: 0; bottom: 0; width: 100%; background-color: #85929e; color: #ebedef; text-align: center; }
 .table, th, td { border: 0px solid black; border-collapse: collapse; text-align: center; }
@@ -22,7 +26,7 @@ System Status: <span id="status"></span>
 <br><br>
 <table><tr><td><button onclick="send(6)">&#x220E STOP &#x220E</button></td></tr><tr> <td><button onclick="send(5)">&#x21AF SAVE &#x21AF</button></td></tr></table>
 </div>
-  
+<br><br><br><br>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
   getData();
@@ -76,7 +80,7 @@ function getData() {
   xhttp.send();
 }
 </script>
-<div class="footer"><p>revision: 0.7.5</p></div>
+<div class="footer"><p><script>document.write('<a href="' + window.location.protocol + '//' + window.location.hostname + ':777' + window.location.pathname + 'update" >revision: 0.7.6</a> ' );</script></p></div>
 </center>
 </body>
 </html>
