@@ -533,6 +533,28 @@ void setup()
     // SET UP COMMINUCATIONS
     Serial.begin(9600);  // Set board's serial speed for terminal communcation
 
+   // OLED INITIALIZATION
+    Wire.begin(21, 22);  //OLED I2C Pins
+    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))  // Address for the I2C OLED screen
+    {
+        Serial.println(F("SSD1306 allocation failed"));
+        for (;;);
+    }
+
+    // Show version and AP on OLED
+    display.clearDisplay();  // Clear the OLED display
+    display.setTextSize(1);  // Set text size for display
+    display.setTextColor(WHITE);  // Set text color for display
+    display.setCursor(0, 10);  // Position the cursor
+    display.println("Booting Wash-n-Cure.");
+    display.println("If screen persists,");
+    display.println("set the units's WiFi");
+    display.println("by connecting to AP:");
+    display.println("");
+    display.println(ssid);
+    display.display();
+    alertTrigger = now + 10000;
+
     WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
     // WiFi.mode(WiFi_STA); // it is a good practice to make sure your code sets wifi mode how you want it.
 
@@ -551,8 +573,8 @@ void setup()
 
     bool res;
     // res = wm.autoConnect(); // auto generated AP name from chipid
-    // res = wm.autoConnect("Wash-n-Cure"); // anonymous ap
-    res = wm.autoConnect("Wash-n-Cure","password"); // password protected ap
+    // res = wm.autoConnect(ssid); // anonymous ap
+    res = wm.autoConnect(ssid,"password"); // password protected ap
 
     if(!res) {
         Serial.println("Failed to connect");
@@ -606,14 +628,7 @@ void setup()
     debouncedSW3.attach(SW3);  // attach debouncedSW3 to SW3
     debouncedSW3.interval(25);  // 25 ms bounce interval
 
-   // OLED INITIALIZATION
-    Wire.begin(21, 22);  //OLED I2C Pins
-    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))  // Address for the I2C OLED screen
-    {
-        Serial.println(F("SSD1306 allocation failed"));
-        for (;;);
-    }
-
+    // Show version and IP on OLED
     sendToOLED();
     display.println("WnC 0.7.6");
     display.println(WiFi.localIP());
