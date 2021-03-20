@@ -24,7 +24,7 @@ System Status: <span id="status"></span>
   <tr><td><button onclick="send(2)">&#x2207 Wash &#x2207</button></td><td></td><td><button onclick="send(4)">&#x2207 Cure &#x2207</button></td></tr>
   <tr><td></td><td><br></td><td></td></tr></table>
 <br><br>
-<table><tr><td><button onclick="send(6)">&#x220E STOP &#x220E</button></td></tr><tr> <td><button onclick="send(5)">&#x21AF SAVE &#x21AF</button></td></tr></table>
+<table><tr><td><button onclick="send(6)">&#x220E PAUSE &#x220E</button></td></tr><tr><td><button onclick="send(7)">&#x220E STOP &#x220E</button></td></tr><tr><td><button onclick="send(5)">&#x21AF SAVE &#x21AF</button></td></tr></table>
 </div>
 <br><br><br><br>
 <script>
@@ -50,7 +50,7 @@ function getData() {
       var myArr = JSON.parse(this.responseText);
       document.getElementById("wash_val").innerHTML = myArr[0];
       document.getElementById("cure_val").innerHTML = myArr[1];
-        if (myArr[2] == 100) {
+        if (myArr[2] == 50) {
           document.getElementById("status").innerHTML = "Ready.";
         }
         if (myArr[2] == 201) {
@@ -72,6 +72,14 @@ function getData() {
         if (myArr[2] > 302) {
           var mleft = myArr[2] - 301;
           document.getElementById("status").innerHTML = "Currently washing, " + mleft + " minutes remaining.";
+        }
+        if (myArr[2] > 400) {
+          var mleft = myArr[2] - 401;
+          document.getElementById("status").innerHTML = "Paused curing, " + mleft + " minutes remaining.";
+        }
+        if (myArr[2] > 500) {
+          var mleft = myArr[2] - 501;
+          document.getElementById("status").innerHTML = "Paused washing, " + mleft + " minutes remaining.";
         }
       this.responseText;
     }

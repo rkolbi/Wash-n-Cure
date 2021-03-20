@@ -12,14 +12,19 @@
 
 -Button functions as: 
          When no functions are active: SW1 = Starts Cure        SW2 = Starts Wash       SW3 = EEPROM Menu
-         Wash or Cure active:          SW1 = Run time +1        SW2 = Run time -1       SW3 = Stops function
+         Wash or Cure active:          SW1 = Run time +1        SW2 = Run time -1       SW3 = Pause Menu
 
--No times changes are fully committed to EEPROM (reboot will revert back) unless the 'Save Times' function is
- selected from the web interface or from EEPROM menu.
-        EEPROM Menu: (User has one minute to make selection, else it exits the menu loop)
+-EEPROM: No times changes are fully committed to EEPROM (reboot will revert back) unless the 'Save Times' function is
+         selected from the web interface or from EEPROM menu.
+         EEPROM Menu: (User has 10 seconds to make selection, else it exits the menu LOCKING loop)
 	-SW1 will eeprom.write wash/cure time to 'factory defaults'
 	-SW2 will eeprom.write wash/cure times if they differ the eeprom.read.
 	-SW3 will cancel the menu, returning to 'Ready'
+
+-PAUSE: 10 minute timer until StopAll is called. All web functions are ignored except Pause and Stop.
+        Pause Menu:
+    -SW1 will unpause
+    -SW2 will stopall
 
 -Wash and Cure functins use different stepper motor controls. 
 -Cure uses the "stepper.setSpeed(500)" and requires "stepper.runSpeed()" to keep moving - yeilding a
@@ -31,22 +36,19 @@
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+
 To do:
-
--Confirm stepper motor driver / control with hardware
-
--Add SW3 functions as following:
-
-  During wash or cure cycle - have SW3 or Interlock initiate pause function.
-	-OLED write Paused.
-	-Pause state to calculate time left and store it in timePause. On resume, this time will be added to
-         now and the cycle will run until completion.
-	-Pasue will stop motor, LED, and fan.
-	-Pressing SW3 while in Pause state will hard stop the running function and return to 'Ready'. This
-         means a double-press will hard stop the cycle.
-	-Pressing SW1 or SW2 while continue with cycle unless Interlock is open. If Interlock is open, SW1
-	 and SW2 will be ignored.
-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+-Operational testing, ensure the following functions are operational / interoperational:
+    1 - OTA firmware update & web interface
+    1 - StopAll function from web interface
+    1 - Time management from web interface
+    0 - Time management from button
+    0 - Pause function from web interface
+    0 - Pause function from button
+    0 - Stepper motion control (wash)
+    0 - Stepper motion control (cure)
+    
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 PLATFORMIO.INI FILE CONTENTS:
@@ -105,15 +107,19 @@ int washSteps = 2000;  // Number of motor step before reversing direction when w
 boolean washDirection = false;  // Initial wash direction
 boolean washActive = false;  // Initial wash state
 boolean cureActive = false;  // Initial cure state
+boolean pauseActive = false;  // Initial pause state
 int washSeconds;  // int for wash cycle seconds
 int cureSeconds;  // int for cure cycle seconds
 int systemStatus;  // systemStatus to pass to web page. 100 = Ready, 2xx = cure and minutes,
-//                    3xx = wash and minutes.
+//                    3xx = wash and minutes, 4xx = paused-cure and minutes,
+//                    5xx = paused-wash and minutes.
 
 // TIMING VARIABLES
 #define now millis()  // now = millis() for easier readability
 unsigned long actionTrigger = 0;  // time trigger for logic of wash and cure cycles
 unsigned long alertTrigger = 0;  // time trigger for OLED display messages
+unsigned long cyclePausedAt = 0;  // stores the time mark when the pause state was initiated
+unsigned long diffPause = 0;  // stores the difference between how much time was left on actionTrigger and now
 
 // EEPROM STORAGE
 #include <EEPROM.h>
@@ -144,6 +150,8 @@ AccelStepper stepper = AccelStepper(motorInterfaceType, stepPin, dirPin);
 const char *ssid = "Wash-n-Cure";
 const char *password = "password";
 const char *hostname = "washncure";
+const char *host = hostname;
+
 WiFiManager wm;
 WebServer server(80);
 
@@ -262,6 +270,7 @@ void StopAll()
 
     cureActive = false;  // Set cure state to false
     washActive = false;
+    pauseActive = false;    
     Serial.println("Stopping all functions!");
 
     sendToOLED();
@@ -271,6 +280,64 @@ void StopAll()
     display.display();
     alertTrigger = now + 2000;
     return;
+}
+
+// PAUSE ACTIVE WASH OR CURE FUNCTION
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void cyclePause()
+{
+    if (washActive == true || cureActive == true)
+    {
+        cyclePausedAt = now;
+        diffPause = now - actionTrigger;  //if unpaused, actionTrigger should = now - diffPause
+        
+        digitalWrite(FAN, LOW);
+        digitalWrite(UVLED, LOW);
+        digitalWrite(motorEnable, LOW);
+        if (washActive == true) Serial.print("Wash ");
+        if (cureActive == true) Serial.print("Cure ");
+                              Serial.println(" Paused.");
+        sendToOLED();
+        display.println("SW1-Resume");
+        display.println("SW2-Cancel");
+        display.display();
+        pauseActive = true;
+    }
+}
+
+// UNPAUSE ACTIVE WASH OR CURE FUNCTION
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void cycleUnPause()
+{
+    if ((IRstate == LOW && washActive == true) || (IRstate == LOW && cureActive == true))
+    {
+        if (washActive == true)
+        {
+            washSeconds = washMinutes * 60;  // Calculate wash seconds from washMinutes (minutes)
+            digitalWrite(FAN, HIGH);  // Turn on the fan
+            digitalWrite(motorEnable, HIGH);  // Enable the motor
+            stepper.setSpeed(8000);  // Set the motor speed
+            stepper.setAcceleration(100);  // Set the stepper acceleration
+            stepper.setCurrentPosition(0);  // Set starting position as 0
+            stepper.moveTo(washSteps);  // Move stepper x steps
+            washDirection = true;  // Motor moves clockwise
+        }
+        else
+        {
+            cureSeconds = cureMinutes * 60;  // Calculate wash seconds from cureMinutes (minutes)
+            digitalWrite(FAN, HIGH);  // Turn on the fan
+            digitalWrite(motorEnable, HIGH);  // Enable the motor
+            digitalWrite(UVLED, HIGH);  // Turn on the UV lamp
+            stepper.setSpeed(500);  // Set the motor speed
+            stepper.runSpeed();  // Start the motor
+        }
+        if (washActive == true) Serial.print("Wash ");
+        if (cureActive == true) Serial.print("Cure ");
+                              Serial.println(" UN-Paused.");		
+        actionTrigger = now - diffPause;
+        pauseActive = false;
+    }    
+    return;  // exit this function
 }
 
 // INCREASE WASH TIME
@@ -384,7 +451,7 @@ void eepromMenu()
 
     Serial.println(".");
     actionTrigger = now;  // Reset the time trigger
-    while ((now - actionTrigger) < 30000)  // Give 30 seconds for a response
+    while ((now - actionTrigger) < 10000)  // Give 10 seconds for a response
     {
         debouncedSW1.update();
         debouncedSW2.update();
@@ -394,9 +461,9 @@ void eepromMenu()
         if (debouncedSW1.fell())
         {
             btn;
-            EEPROM.write(0, CureDefault);  // RESET CURE TIME
+            EEPROM.write(0, WashDefault);  // RESET CURE TIME
             washMinutes = EEPROM.read(0);  // READ BACK CURE TIME
-            EEPROM.write(1, WashDefault);  // RESET WASH TIME
+            EEPROM.write(1, CureDefault);  // RESET WASH TIME
             cureMinutes = EEPROM.read(1);  // READ BACK WASH TIME
             EEPROM.commit();  // Commit changes to EEPROM
 
@@ -459,9 +526,17 @@ void handleNotFound()
 // is received by the index/root page and parsed the java to yeild a more human status such as, "Washing, 20 minutes to go."
 void wncInfo()
 {
-    if (cureActive == false && washActive == false) systemStatus = 100;
-    if (cureActive == true && washActive == false) systemStatus = 201 + ((((cureSeconds *1000) - (now - actionTrigger)) / 60000));
-    if (cureActive == false && washActive == true) systemStatus = 301 + ((((washSeconds *1000) - (now - actionTrigger)) / 60000));
+    if (cureActive == false && washActive == false) systemStatus = 50;
+    if (pauseActive == true) 
+    {
+        if(cureActive == true && washActive == false) systemStatus = 401 + ((((cureSeconds *1000) - diffPause) /60000));
+        if(cureActive == false && washActive == true) systemStatus = 501 + ((((washSeconds *1000) - diffPause) /60000));
+    }
+    else
+    {
+        if (cureActive == true && washActive == false) systemStatus = 201 + ((((cureSeconds *1000) - (now - actionTrigger)) / 60000));
+        if (cureActive == false && washActive == true) systemStatus = 301 + ((((washSeconds *1000) - (now - actionTrigger)) / 60000));
+    }
     server.send(200, "text/plane", "[" + String(washMinutes) + "," + String(cureMinutes) + "," + String(systemStatus) + "]");
 }
 
@@ -473,27 +548,27 @@ void wncChange()
     Serial.print("Received webAction :");
     Serial.println(webAction);
 
-    if (webAction == "1")  // Wash Time Increase by one minute
+    if (webAction == "1" && pauseActive == false)  // Wash Time Increase by one minute
     {
         washUP();
         wncInfo();  // Send back updated data
     }
-    else if (webAction == "2")  // Wash Time Decrease by one minute
+    else if (webAction == "2" && pauseActive == false)  // Wash Time Decrease by one minute
     {
         washDOWN();
         wncInfo();
     }
-    else if (webAction == "3")  // Cure Time Increase by one minute
+    else if (webAction == "3" && pauseActive == false)  // Cure Time Increase by one minute
     {
         cureUP();
         wncInfo();
     }
-    else if (webAction == "4")  // Cure Time Decrease by one minute
+    else if (webAction == "4" && pauseActive == false)  // Cure Time Decrease by one minute
     {
         cureDOWN();
         wncInfo();
     }
-    else if (webAction == "5")  // Commit time changes to EEPROM
+    else if (webAction == "5" && pauseActive == false)  // Commit time changes to EEPROM
     {
         EEPROM.commit();
         sendToOLED();
@@ -504,10 +579,29 @@ void wncChange()
         alertTrigger = millis() + 4000;
         wncInfo();  // Send back updated data
     }
-    else if (webAction == "6")  // Stop All
+    else if (webAction == "6")  // Pause
     {
+        if (washActive == true || cureActive == true)
+        {
+            if (pauseActive == false)
+            {
+            cyclePause();
+            wncInfo();  // Send back updated data
+            }
+            else
+            {
+            cycleUnPause();
+            wncInfo();
+            }
+        }
+    }
+    else if (webAction == "7")  // Stop All
+    {
+        if (washActive == true || cureActive == true)
+        {
         StopAll();
         wncInfo();  // Send back updated data
+        }
     }
 }
 
@@ -530,8 +624,23 @@ void handleEepromSave()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void setup()
 {
-    // SET UP COMMINUCATIONS
+    // SET UP SERIAL PORT
     Serial.begin(9600);  // Set board's serial speed for terminal communcation
+
+    
+    // INITIALIZE EEPROM
+    EEPROM.begin(EEPROM_SIZE);
+    washMinutes = EEPROM.read(0);  // Read washMinutes from EEPROM location 0
+    cureMinutes = EEPROM.read(1);  // Read cureMinutes from EEPROM location 1
+    // CHECK EEPROM VALUES FOR WASH AND CURE
+    if (washMinutes > 50)
+        {
+        EEPROM.write(0, WashDefault);  // RESET WASH TIME
+        washMinutes = EEPROM.read(0);  // READ BACK WASH TIME
+        EEPROM.write(1, CureDefault);  // RESET CURE TIME
+        cureMinutes = EEPROM.read(1);  // READ BACK CURE TIME
+        EEPROM.commit();  // Commit changes to EEPROM
+        }
 
    // OLED INITIALIZATION
     Wire.begin(21, 22);  //OLED I2C Pins
@@ -541,6 +650,8 @@ void setup()
         for (;;);
     }
 
+    // SET UP NETWORK
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // Show unit starting and give AP incase WiFi not yet set.
     display.clearDisplay();  // Clear the OLED display
     display.setTextSize(1);  // Set text size for display
@@ -556,8 +667,6 @@ void setup()
 
     WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
     // WiFi.mode(WiFi_STA); // it is a good practice to make sure your code sets wifi mode how you want it.
-
-    wm.setHostname(hostname);
 
     //WiFiManager, Local intialization. Once its business is done, there is no need to keep it around
     WiFiManager wm;
@@ -593,11 +702,6 @@ void setup()
 
     webota.init(777, "/update");  // Setup web over-the-air update port and directory
 
-
-   // INITIALIZE EEPROM
-    EEPROM.begin(EEPROM_SIZE);
-    washMinutes = EEPROM.read(0);  // Read washMinutes from EEPROM location 0
-    cureMinutes = EEPROM.read(1);  // Read cureMinutes from EEPROM location 1
 
    // SET UP STEPPER CONTROL
     stepper.setMaxSpeed(8000);  // Set max stepper speed to 8000
@@ -669,125 +773,141 @@ void setup()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void loop()
 {
-    //MDNS.update();
     // RUN OTA UPDATE SERVICE  
     webota.handle();
 
    // RUN THE WEB SERVER
    server.handleClient();
 
-   // OLED STATUS CHECK - WASHING
-   if (washActive == true && now > alertTrigger)
+   // CHECK IF PAUSE TIME HAS EXPIRED
+   if (pauseActive == true && (now - cyclePausedAt) > 600000) StopAll();
+
+   // CHECK IF PAUSED
+   if (pauseActive == true)
    {
-       sendToOLED();
-       display.println("Washing...");
-       if ((((washSeconds *1000) - (now - actionTrigger)) / 60000) == 0) 
-       {
-           display.println("<1 minute");
-       }
-       else
-       {
-           display.print((((washSeconds *1000) - (now - actionTrigger)) / 60000));
-            if ((((washSeconds *1000) - (now - actionTrigger)) / 60000) > 1)
+        if (washActive == true) Serial.println(" ..Wash..");
+        if (cureActive == true) Serial.println(" ..Cure..");
+        Serial.print("..Paused..");
+        sendToOLED();
+        display.println("SW1-Resume");
+        display.println("SW2-Cancel");
+        display.display();
+   }
+   else
+   {
+        // OLED STATUS CHECK - WASHING
+        if (washActive == true && now > alertTrigger)
+        {
+            sendToOLED();
+            display.println("Washing...");
+            if ((((washSeconds *1000) - (now - actionTrigger)) / 60000) == 0) 
             {
-                display.println(" minutes");    
+                display.println("<1 minute");
             }
             else
             {
-                display.println(" minute");
+                display.print((((washSeconds *1000) - (now - actionTrigger)) / 60000));
+                    if ((((washSeconds *1000) - (now - actionTrigger)) / 60000) > 1)
+                    {
+                        display.println(" minutes");    
+                    }
+                    else
+                    {
+                        display.println(" minute");
+                    }
             }
-       }
-       display.println("remaining.");
-       display.display();
-    }
-   
-    // OLED STATUS CHECK - CURING
-    if (cureActive == true && now > alertTrigger)
-    {
-        sendToOLED();
-        display.println("Curing...");
-        if ((((cureSeconds *1000) - (now - actionTrigger)) / 60000) == 0) 
-        {
-            display.println("<1 minute");
-        }
-        else
-        {
-            display.print((((cureSeconds *1000) - (now - actionTrigger)) / 60000));
-            if ((((cureSeconds *1000) - (now - actionTrigger)) / 60000) > 1)
+            display.println("remaining.");
+            display.display();
+            }
+        
+            // OLED STATUS CHECK - CURING
+            if (cureActive == true && now > alertTrigger)
             {
-                display.println(" minutes");    
+                sendToOLED();
+                display.println("Curing...");
+                if ((((cureSeconds *1000) - (now - actionTrigger)) / 60000) == 0) 
+                {
+                    display.println("<1 minute");
+                }
+                else
+                {
+                    display.print((((cureSeconds *1000) - (now - actionTrigger)) / 60000));
+                    if ((((cureSeconds *1000) - (now - actionTrigger)) / 60000) > 1)
+                    {
+                        display.println(" minutes");    
+                    }
+                    else
+                    {
+                        display.println(" minute");
+                    }
+                }
+                display.println("remaining.");
+                display.display();
             }
-            else
+
+            // OLED STATUS CHECK - READY
+            if (cureActive == false && washActive == false && IRstate == LOW && now > alertTrigger)
             {
-                display.println(" minute");
+                sendToOLED();
+                display.println("Wash&Cure");
+                display.println(" ");
+                display.print("  Ready");
+                display.display();
             }
-        }
-        display.println("remaining.");
-        display.display();
-    }
 
-    // OLED STATUS CHECK - READY
-    if (cureActive == false && washActive == false && IRstate == LOW && now > alertTrigger)
-    {
-        sendToOLED();
-        display.println("Wash&Cure");
-        display.println(" ");
-        display.print("  Ready");
-        display.display();
-    }
+            // INTERLOCK CHECK
+            IRstate = digitalRead(PROX);
+            if ((IRstate == HIGH && washActive == true) || (IRstate == HIGH && cureActive == true))
+            {
+                Serial.println("Interlock tripper.");
+                cyclePause();
+            }
 
-    // INTERLOCK CHECK
-    IRstate = digitalRead(PROX);
-    if ((IRstate == HIGH && washActive == true) || (IRstate == HIGH && cureActive == true))
-    {
-        StopAll();
-    }
+            // WASH CYCLE CHECK 
+            if (washActive == true && ((now - actionTrigger) > (washSeconds *1000)))
+            {
+                Serial.println("Washing stopped by timer.");
+                washoff();
+            }
 
-    // WASH CYCLE CHECK 
-    if (washActive == true && ((now - actionTrigger) > (washSeconds *1000)))
-    {
-        Serial.println("Washing stopped by timer.");
-        washoff();
-    }
+            // CURE CYCLE CHECK  
+            if (cureActive == true && ((now - actionTrigger) > (cureSeconds *1000)))
+            {
+                Serial.println("UV Cure stopped by timer.");
+                cureoff();
+            }
 
-    // CURE CYCLE CHECK  
-    if (cureActive == true && ((now - actionTrigger) > (cureSeconds *1000)))
-    {
-        Serial.println("UV Cure stopped by timer.");
-        cureoff();
-    }
+            // STEPPER MOTOR CHECK - IF WASHING, CHECK STEPS TO GO AND REVERSE DIRECTION IF STEPS HAVE BEEN COMPLETED
+            if (stepper.distanceToGo() == 0 && washActive == true)
+            {
+                if (washDirection == true)
+                {
+                    stepper.setCurrentPosition(0);  // Set starting position as 0
+                    stepper.moveTo((washSteps *-1));  // Move stepper x steps  
+                    Serial.println("Changing stepper direction to reverse.");
+                    washDirection = false;
+                }
+                else
+                {
+                    stepper.setCurrentPosition(0);  // Set starting position as 0
+                    stepper.moveTo(washSteps);  // Move stepper x steps
+                    Serial.println("Changing stepper direction to forward.");
+                    washDirection = true;
+                }
+            }
 
-    // STEPPER MOTOR CHECK - IF WASHING, CHECK STEPS TO GO AND REVERSE DIRECTION IF STEPS HAVE BEEN COMPLETED
-    if (stepper.distanceToGo() == 0 && washActive == true)
-    {
-        if (washDirection == true)
-        {
-            stepper.setCurrentPosition(0);  // Set starting position as 0
-            stepper.moveTo((washSteps *-1));  // Move stepper x steps  
-            Serial.println("Changing stepper direction to reverse.");
-            washDirection = false;
-        }
-        else
-        {
-            stepper.setCurrentPosition(0);  // Set starting position as 0
-            stepper.moveTo(washSteps);  // Move stepper x steps
-            Serial.println("Changing stepper direction to forward.");
-            washDirection = true;
-        }
-    }
+            // STEPPER MOTOR CHECK - IF WASHING, KEEP STEPPER MOVING
+            if (washActive == true)
+            {
+                stepper.run();
+            }
 
-    // STEPPER MOTOR CHECK - IF WASHING, KEEP STEPPER MOVING
-    if (washActive == true)
-    {
-        stepper.run();
-    }
-
-    // STEPPER MOTOR CHECK - IF CURING, KEEP STEPPER MOVING
-    if (cureActive == true)
-    {
-        stepper.runSpeed();
-    }
-
+            // STEPPER MOTOR CHECK - IF CURING, KEEP STEPPER MOVING
+            if (cureActive == true)
+            {
+                stepper.runSpeed();
+            }
+   }
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //// SWITCH CONTROL              SWITCH CONTROL                SWITCH CONTROL                 SWITCH CONTROL	
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -797,56 +917,59 @@ void loop()
    debouncedSW2.update();
    debouncedSW3.update();
 
-   // SW1 - Start cure function, or if a function is running - increase by one minute
-   if (debouncedSW1.fell() && washActive == false && cureActive == false)
-   {
-        btn;
-        cure();
-   }
-   else if (debouncedSW1.fell() && washActive == true && cureActive == false && washMinutes < 20)
-   {
-        btn;
-        washUP();
-   }
-   else if (debouncedSW1.fell() && cureActive == true && washActive == false && cureMinutes < 20)
-   {
-        btn;
-        cureUP();
-   }
+    if (pauseActive == true)
+    {
+        if (debouncedSW1.fell()) cycleUnPause();
+        if (debouncedSW2.fell()) StopAll();
+    }
+    else
+    {
+        // SW1 - Start cure function, or if a function is running - increase by one minute
+        if (debouncedSW1.fell() && washActive == false && cureActive == false)
+        {
+                btn;
+                cure();
+        }
+        else if (debouncedSW1.fell() && washActive == true && cureActive == false && washMinutes < 20)
+        {
+                btn;
+                washUP();
+        }
+        else if (debouncedSW1.fell() && cureActive == true && washActive == false && cureMinutes < 20)
+        {
+                btn;
+                cureUP();
+        }
 
-   // SW2 - Start wash function, or if a function is running - decrease by one minute
-   if (debouncedSW2.fell() && cureActive == false && washActive == false)
-   {
-        btn;
-        wash();
-   }
-   else if (debouncedSW2.fell() && cureActive == true && washActive == false && cureMinutes > 3)
-   {
-        btn;
-        cureDOWN();
-   }
-   else if (debouncedSW2.fell() && washActive == true && cureActive == false && washMinutes > 3)
-   {
-        btn;
-        washDOWN();
-   }
+        // SW2 - Start wash function, or if a function is running - decrease by one minute
+        if (debouncedSW2.fell() && cureActive == false && washActive == false)
+        {
+                btn;
+                wash();
+        }
+        else if (debouncedSW2.fell() && cureActive == true && washActive == false && cureMinutes > 3)
+        {
+                btn;
+                cureDOWN();
+        }
+        else if (debouncedSW2.fell() && washActive == true && cureActive == false && washMinutes > 3)
+        {
+                btn;
+                washDOWN();
+        }
 
-   // SW3 - Stop any running function
-   if (debouncedSW3.fell() && washActive == true && cureActive == false)
-   {
-        btn;
-        washoff();
-   }
-   else if (debouncedSW3.fell() && washActive == false && cureActive == true)
-   {
-        btn;
-        cureoff();
-   }
+        // SW3 - Pause running function
+        if (debouncedSW3.fell() && (washActive == true || cureActive == true))
+        {
+                btn;
+                cyclePause();
+        }
 
-   // SW3 - If nothing is running, bring up the EEPROM menu
-   if (debouncedSW3.fell() && washActive == false && cureActive == false)
-   {
-        btn;
-        eepromMenu();
-   }
+        // SW3 - If nothing is running, bring up the EEPROM menu
+        if (debouncedSW3.fell() && washActive == false && cureActive == false)
+        {
+                btn;
+                eepromMenu();
+        }
+    }
 }
