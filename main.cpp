@@ -146,13 +146,9 @@ AccelStepper stepper = AccelStepper(motorInterfaceType, stepPin, dirPin);
 #include <WebOTA.h>
 #include <WiFiManager.h>
 #include <ESPmDNS.h>
-
-const char *ssid = "Wash-n-Cure";
+const char *ssid = "WnC-Setup";
 const char *password = "password";
-const char *hostname = "washncure";
-const char *host = hostname;
-
-WiFiManager wm;
+const char *hostname = "washNcure";
 WebServer server(80);
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -627,21 +623,6 @@ void setup()
     // SET UP SERIAL PORT
     Serial.begin(9600);  // Set board's serial speed for terminal communcation
 
-    
-    // INITIALIZE EEPROM
-    EEPROM.begin(EEPROM_SIZE);
-    washMinutes = EEPROM.read(0);  // Read washMinutes from EEPROM location 0
-    cureMinutes = EEPROM.read(1);  // Read cureMinutes from EEPROM location 1
-    // CHECK EEPROM VALUES FOR WASH AND CURE
-    if (washMinutes > 50)
-        {
-        EEPROM.write(0, WashDefault);  // RESET WASH TIME
-        washMinutes = EEPROM.read(0);  // READ BACK WASH TIME
-        EEPROM.write(1, CureDefault);  // RESET CURE TIME
-        cureMinutes = EEPROM.read(1);  // READ BACK CURE TIME
-        EEPROM.commit();  // Commit changes to EEPROM
-        }
-
    // OLED INITIALIZATION
     Wire.begin(21, 22);  //OLED I2C Pins
     if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))  // Address for the I2C OLED screen
@@ -670,6 +651,7 @@ void setup()
 
     //WiFiManager, Local intialization. Once its business is done, there is no need to keep it around
     WiFiManager wm;
+
 
     //reset settings - wipe credentials for testing
     //wm.resetSettings();
@@ -731,6 +713,20 @@ void setup()
     debouncedSW3.attach(SW3);  // attach debouncedSW3 to SW3
     debouncedSW3.interval(25);  // 25 ms bounce interval
 
+    // INITIALIZE EEPROM
+    EEPROM.begin(EEPROM_SIZE);
+    washMinutes = EEPROM.read(0);  // Read washMinutes from EEPROM location 0
+    cureMinutes = EEPROM.read(1);  // Read cureMinutes from EEPROM location 1
+    // CHECK EEPROM VALUES FOR WASH AND CURE
+    if (washMinutes > 50)
+        {
+        EEPROM.write(0, WashDefault);  // RESET WASH TIME
+        washMinutes = EEPROM.read(0);  // READ BACK WASH TIME
+        EEPROM.write(1, CureDefault);  // RESET CURE TIME
+        cureMinutes = EEPROM.read(1);  // READ BACK CURE TIME
+        EEPROM.commit();  // Commit changes to EEPROM
+        }
+
     // Show version and IP on OLED
     sendToOLED();
     display.println("WnC 0.7.6");
@@ -739,7 +735,6 @@ void setup()
     alertTrigger = now + 10000;
 
     // WEB PAGE CONFIGURATIONS
-
     // WHEN THE SERVER GETS A REQUEST FOR A PAGE, CALL ITS FUNCTION.
     server.on("/", handleRoot);
     server.on("/wncchange", wncChange);
