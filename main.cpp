@@ -541,19 +541,18 @@ void setup()
         for (;;);
     }
 
-    // Show version and AP on OLED
+    // Show unit starting and give AP incase WiFi not yet set.
     display.clearDisplay();  // Clear the OLED display
     display.setTextSize(1);  // Set text size for display
     display.setTextColor(WHITE);  // Set text color for display
     display.setCursor(0, 10);  // Position the cursor
-    display.println("Booting Wash-n-Cure.");
+    display.println("Starting Wash-n-Cure.");
     display.println("If screen persists,");
     display.println("set the units's WiFi");
     display.println("by connecting to AP:");
     display.println("");
     display.println(ssid);
     display.display();
-    alertTrigger = now + 10000;
 
     WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
     // WiFi.mode(WiFi_STA); // it is a good practice to make sure your code sets wifi mode how you want it.
