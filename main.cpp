@@ -341,12 +341,10 @@ void cycleUnPause()
 void washUP()
 {
     washMinutes = EEPROM.read(0);
-    Serial.println("Increase wash time.");
-    Serial.println(washMinutes);
     EEPROM.write(0, ++washMinutes);
     washMinutes = EEPROM.read(0);
     washSeconds = washMinutes * 60;
-    Serial.println("New wash value from memory");
+    Serial.print("+New wash time: ");
     Serial.println(washMinutes);
 
     sendToOLED();
@@ -365,13 +363,11 @@ void washDOWN()
     {
         if ((washActive == false) || (washActive == true && ((((washSeconds *1000) - (now - actionTrigger)) / 60000)) > 1))
         {
-            Serial.println("Decrease wash time.");
-            Serial.println(washMinutes);
             EEPROM.write(0, --washMinutes);
             washMinutes = EEPROM.read(0);
             washSeconds = washMinutes * 60;
-            Serial.println("New wash value from memory");
-            Serial.println(washMinutes);
+            Serial.println("-New wash time: ");
+            Serial.print(washMinutes);
 
             sendToOLED();
             display.println("Wash time:");
@@ -387,12 +383,10 @@ void washDOWN()
 void cureUP()
 {
     cureMinutes = EEPROM.read(1);
-    Serial.println("Increase cure time.");
-    Serial.println(cureMinutes);
     EEPROM.write(1, ++cureMinutes);
     cureMinutes = EEPROM.read(1);
     cureSeconds = cureMinutes * 60;
-    Serial.println("New cure value from memory");
+    Serial.print("+New cure time: ");
     Serial.println(cureMinutes);
 
     sendToOLED();
@@ -411,12 +405,10 @@ void cureDOWN()
     {
         if ((cureActive == false) || (cureActive == true && ((((cureSeconds *1000) - (now - actionTrigger)) / 60000)) > 1))
         {
-        Serial.println("Decrease cure time.");
-        Serial.println(cureMinutes);
         EEPROM.write(1, --cureMinutes);
         cureMinutes = EEPROM.read(1);
         cureSeconds = cureMinutes * 60;
-        Serial.println("New cure value from memory");
+        Serial.print("-New cure time: ");
         Serial.println(cureMinutes);
 
         sendToOLED();
@@ -432,7 +424,7 @@ void cureDOWN()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void eepromMenu()
 {
-    Serial.print("EEPROM Menu actions");
+    Serial.print("EEPROM:");
     sendToOLED();
     display.println("SW1-Reset");
     display.println("SW2-Save");
@@ -465,8 +457,8 @@ void eepromMenu()
 
             sendToOLED();
             display.println("Wash&Cure");
-            display.println(" EEPROM  ");
-            display.print(" reset!  ");
+            display.println(" EEPROM");
+            display.print(" reset.");
             display.display();
             alertTrigger = now + 2000;
             return;  // exit this function
@@ -479,8 +471,8 @@ void eepromMenu()
             EEPROM.commit();
             sendToOLED();
             display.println("Wash&Cure");
-            display.println("  times  ");
-            display.print("  saved");
+            display.println("  times");
+            display.print("  saved.");
             display.display();
             alertTrigger = now + 2000;
             return;  // exit this function
@@ -569,7 +561,7 @@ void wncChange()
         EEPROM.commit();
         sendToOLED();
         display.println("Wash&Cure");
-        display.println("saving  ");
+        display.println("saving");
         display.print("settings");
         display.display();
         alertTrigger = millis() + 4000;
@@ -608,8 +600,8 @@ void handleEepromSave()
     EEPROM.commit();
     sendToOLED();
     display.println("Wash&Cure");
-    display.println("  times  ");
-    display.print("  saved");
+    display.println("  times");
+    display.print("  saved.");
     display.display();
     alertTrigger = now + 2000;
     handleRoot();
@@ -639,11 +631,12 @@ void setup()
     display.setTextColor(WHITE);  // Set text color for display
     display.setCursor(0, 10);  // Position the cursor
     display.println("Starting Wash-n-Cure.");
-    display.println("If screen persists,");
-    display.println("set the units's WiFi");
-    display.println("by connecting to AP:");
+    display.println("Set units's WiFi by");
+    display.println("connecting to:");
     display.println("");
+    display.print("AP: ");
     display.println(ssid);
+    display.println("PWD: password");
     display.display();
 
     WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
