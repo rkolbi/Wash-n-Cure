@@ -34,8 +34,6 @@
  change. The directional change occurs from polling "stepper.distanceToGo() == 0", then the code can
  take 'washSteps * -1' and restart the process - now running to the negative steps (turning the other way).
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
 
 To do:
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -74,6 +72,9 @@ lib_deps =
         http://github.com/adafruit/Adafruit_SSD1306
 
 */
+
+
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //// LIBRARIES & DECLARATIONS               LIBRARIES & DECLARATIONS                LIBRARIES & DECLARATIONS
@@ -149,8 +150,12 @@ AccelStepper stepper = AccelStepper(motorInterfaceType, stepPin, dirPin);
 const char* ssid = "WnC-Setup";
 const char* password = "password";
 const char* hostname = "washNcure";
-const char* mdns_hostname = hostname; // For WebOTA
+const char* mdns_hostname = hostname; // For WebOTA - not required
+const char* host = hostname; // For WebOTA - not required
 WebServer server(80);
+
+
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //// FUNCTIONS          FUNCTIONS          FUNCTIONS          FUNCTIONS          FUNCTIONS         FUNCTIONS
@@ -493,8 +498,10 @@ void eepromMenu()
     Serial.println("Timed-out of EEPROM Menu.");
 }
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//// WEB INTERFACE         WEB INTERFACE          WEB INTERFACE          WEB INTERFACE         WEB INTERFACE
+
+
+
+// WEB INTERFACE
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 // SERVE THE CONTENTS OF THE INDEX.HTML FILE
@@ -617,6 +624,9 @@ void handleEepromSave()
     alertTrigger = now + 2000;
     handleRoot();
 }
+
+
+
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //// SETUP           SETUP           SETUP            SETUP            SETUP           SETUP           SETUP
@@ -767,6 +777,9 @@ void setup()
     Serial.println(now);
 }
 
+
+
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //// LOOP         LOOP           LOOP          LOOP          LOOP           LOOP          LOOP          LOOP
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -912,6 +925,9 @@ void loop()
         }
     }
 
+ 
+ 
+ 
     // SWITCH CONTROL
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
