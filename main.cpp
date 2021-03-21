@@ -15,7 +15,7 @@
          Wash or Cure active:          SW1 = Run time +1        SW2 = Run time -1       SW3 = Pause Menu
 
 -EEPROM: No times changes are fully committed to EEPROM (reboot will revert back) unless the 'Save Times'
- function is selected from the web interface or from EEPROM menu.
+         function is selected from the web interface or from EEPROM menu.
          EEPROM Menu: (User has 10 seconds to make selection, else it exits the menu LOCKING loop)
         -SW1 will eeprom.write wash/cure time to 'factory defaults'
         -SW2 will eeprom.write wash/cure times if they differ the eeprom.read.
@@ -23,8 +23,8 @@
 
 -PAUSE: 10 minute timer until StopAll is called. All web functions are ignored except Pause and Stop.
         Pause Menu:
-    -SW1 will unpause
-    -SW2 will stopall
+        -SW1 will unpause
+        -SW2 will stopall
 
 -Wash and Cure functins use different stepper motor controls.
 -Cure uses the "stepper.setSpeed(500)" and requires "stepper.runSpeed()" to keep moving - yeilding a
