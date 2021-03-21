@@ -6,15 +6,13 @@
   
 -Over the Air (OTA) updating. Update link is the revision number displayed in the footer.  
   
--Simple web interface employing simple AJAX & JSON to change wash and cure times, commit new  
-times to EEPROM, OTA firmware update (.BIN file), and stop all functions.  
+-Simple web interface employing simple AJAX & JSON to change wash and cure times, commit new times to EEPROM, OTA firmware update (.BIN file), and stop all functions.  
   
 -Button functions as:  
 When no functions are active: SW1 = Starts Cure      SW2 = Starts Wash     SW3 = EEPROM Menu  
 Wash or Cure active:          SW1 = Run time +1      SW2 = Run time -1     SW3 = Pause Menu  
   
--EEPROM: No times changes are fully committed to EEPROM (reboot will revert back) unless the  
-'Save Times' function is selected from the web interface or from EEPROM menu.  
+-EEPROM: No times changes are fully committed to EEPROM (reboot will revert back) unless the 'Save Times' function is selected from the web interface or from EEPROM menu.  
 EEPROM Menu: (User has 10 seconds to make selection, else it exits the menu LOCKING loop)  
 -SW1 will eeprom.write wash/cure time to 'factory defaults'  
 -SW2 will eeprom.write wash/cure times if they differ the eeprom.read.  
@@ -26,13 +24,8 @@ EEPROM Menu: (User has 10 seconds to make selection, else it exits the menu LOCK
         -SW2 will stopall  
   
 -Wash and Cure functins use different stepper motor controls.  
--Cure uses the "stepper.setSpeed(500)" and requires "stepper.runSpeed()" to keep moving,  
-yeilding a constants turning motor.  
--Wash uses "stepper.moveTo(washSteps)", steps to "int washSteps = 2000;", and requires  
-"stepper.run();" to keep moving until the steps are complete - allowing the motor to have  
-directional change. The directional change occurs from polling "stepper.distanceToGo() == 0"  
-then the code can take 'washSteps * -1' and restart the process - now running to the  
-negative steps (turning the other way).  
+-Cure uses the "stepper.setSpeed(500)" and requires "stepper.runSpeed()" to keep moving, yeilding a constants turning motor.  
+-Wash uses "stepper.moveTo(washSteps)", steps to "int washSteps = 2000;", and requires "stepper.run();" to keep moving until the steps are complete - allowing the motor to have directional change. The directional change occurs from polling "stepper.distanceToGo() == 0" then the code can take 'washSteps * -1' and restart the process - now running to the negative steps (turning the other way).  
   
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=  
   
