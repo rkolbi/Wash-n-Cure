@@ -76,8 +76,7 @@ lib_deps =
 */
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//// LIBRARIES & DECLARATIONS               LIBRARIES & DECLARATIONS                LIBRARIES &
-///DECLARATIONS
+//// LIBRARIES & DECLARATIONS               LIBRARIES & DECLARATIONS                LIBRARIES & DECLARATIONS
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 // BASE LIBRARIES
@@ -497,7 +496,7 @@ void eepromMenu()
 //// WEB INTERFACE         WEB INTERFACE          WEB INTERFACE          WEB INTERFACE         WEB INTERFACE
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-// SERVER THE CONTENTS OF THE INDEX.HTML FILE
+// SERVE THE CONTENTS OF THE INDEX.HTML FILE
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void handleRoot()
 {
@@ -604,7 +603,7 @@ void wncChange()
     }
 }
 
-// EepromSave WEB RESPONSE
+// EEPROM Save WEB RESPONSE
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void handleEepromSave()
 {
@@ -711,18 +710,19 @@ void setup()
     debouncedSW1.attach(SW1); // attach debouncedSW1 to SW1
     debouncedSW1.interval(25); // 25 ms bounce interval
 
-    pinMode(SW2, INPUT); // Set SW2 pin as an input
-    debouncedSW2.attach(SW2); // attach debouncedSW2 to SW2
-    debouncedSW2.interval(25); // 25 ms bounce interval
+    pinMode(SW2, INPUT); 
+    debouncedSW2.attach(SW2); 
+    debouncedSW2.interval(25); 
 
-    pinMode(SW3, INPUT); // Set SW3 pin as an input
-    debouncedSW3.attach(SW3); // attach debouncedSW3 to SW3
-    debouncedSW3.interval(25); // 25 ms bounce interval
+    pinMode(SW3, INPUT); 
+    debouncedSW3.attach(SW3); 
+    debouncedSW3.interval(25); 
 
     // INITIALIZE EEPROM
     EEPROM.begin(EEPROM_SIZE);
     washMinutes = EEPROM.read(0); // Read washMinutes from EEPROM location 0
     cureMinutes = EEPROM.read(1); // Read cureMinutes from EEPROM location 1
+    
     // CHECK EEPROM VALUES FOR WASH AND CURE
     if (washMinutes > 50)
     {
@@ -740,16 +740,14 @@ void setup()
     display.display();
     alertTrigger = now + 10000;
 
-    // WEB PAGE CONFIGURATIONS
-    // WHEN THE SERVER GETS A REQUEST FOR A PAGE, CALL ITS FUNCTION.
+    // WEB PAGE CONFIGURATIONS - WHEN THE SERVER GETS A REQUEST FOR A PAGE, CALL ITS FUNCTION.
     server.on("/", handleRoot);
     server.on("/wncchange", wncChange);
     server.on("/wncinfo", wncInfo);
-
     server.onNotFound(handleNotFound);
-
     server.begin();
-    Serial.print("SETUP Complete");
+   
+    Serial.print("Startup Complete");
 
     // WAIT FOR SW3(PIN 0) TO RETURN TO A NORMAL INPUT
     actionTrigger = now; // Reset the time trigger
@@ -912,9 +910,9 @@ void loop()
             stepper.runSpeed();
         }
     }
-    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    //// SWITCH CONTROL              SWITCH CONTROL                SWITCH CONTROL                 SWITCH CONTROL
-    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+    // SWITCH CONTROL
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
     // UPDATE THE BOUNCE INSTANCES
     debouncedSW1.update();
