@@ -99,7 +99,7 @@ int IRstate; // Lid Proximity Sensor state
 Bounce debouncedSW1 = Bounce(); // Bounce instance for SW1
 Bounce debouncedSW2 = Bounce(); // Bounce instance for SW3
 Bounce debouncedSW3 = Bounce(); // Bounce instance for SW3
-#define btn delay(500) // Wait function following button detection
+#define btn delay(50) // Pause function following button detection
 
 // WASH AND CURE VARIABLES
 #define CureDefault 20 // Factory restore value
