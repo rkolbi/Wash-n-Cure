@@ -93,8 +93,7 @@ lib_deps =
 #define SW1 35 // PIN:35 SW1 Button
 #define SW2 34 // PIN:34 SW2 Button
 #define SW3 0 // PIN:00 SW3 Button (Also used for programming mode)
-
-int IRstate; // Lid Proximity Sensor state
+int safetyInterlock; // Lid Proximity Sensor state
 
 Bounce debouncedSW1 = Bounce(); // Bounce instance for SW1
 Bounce debouncedSW2 = Bounce(); // Bounce instance for SW3
@@ -301,7 +300,7 @@ void cyclePause()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void cycleUnPause()
 {
-    if ((IRstate == LOW && washActive == true) || (IRstate == LOW && cureActive == true))
+    if ((safetyInterlock == LOW) && (washActive == true || cureActive == true))
     {
         if (washActive == true)
         {
@@ -845,7 +844,7 @@ void loop()
         }
 
         // OLED STATUS CHECK - READY
-        if (cureActive == false && washActive == false && IRstate == LOW && now > noteTimeOut)
+        if (cureActive == false && washActive == false && safetyInterlock == LOW && now > noteTimeOut)
         {
             sendToOLED();
             display.println("Wash&Cure");
@@ -855,8 +854,8 @@ void loop()
         }
 
         // INTERLOCK CHECK
-        IRstate = digitalRead(PROX);
-        if ((IRstate == HIGH && washActive == true) || (IRstate == HIGH && cureActive == true))
+        safetyInterlock = digitalRead(PROX);
+        if ((safetyInterlock == HIGH) && (washActive == true || cureActive == true))
         {
             Serial.println("Interlock tripped.");
             cyclePause();
