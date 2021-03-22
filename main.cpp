@@ -99,7 +99,6 @@ int IRstate; // Lid Proximity Sensor state
 Bounce debouncedSW1 = Bounce(); // Bounce instance for SW1
 Bounce debouncedSW2 = Bounce(); // Bounce instance for SW3
 Bounce debouncedSW3 = Bounce(); // Bounce instance for SW3
-#define btn delay(50) // Pause function following button detection
 
 // WASH AND CURE VARIABLES
 #define CureDefault 20 // Factory restore value
@@ -448,7 +447,6 @@ void eepromMenu()
         // SW1 - Reset Wash and Cure time to factory defauls
         if (debouncedSW1.fell())
         {
-            btn;
             EEPROM.write(0, WashDefault); // RESET CURE TIME
             washMinutes = EEPROM.read(0); // READ BACK CURE TIME
             EEPROM.write(1, CureDefault); // RESET WASH TIME
@@ -467,7 +465,6 @@ void eepromMenu()
         // SW2 - Save current setting to EEPROM
         if (debouncedSW2.fell())
         {
-            btn;
             EEPROM.commit();
             sendToOLED();
             display.println("Wash&Cure");
@@ -481,7 +478,6 @@ void eepromMenu()
         // SW3 - Exit EEPROM menu
         if (debouncedSW3.fell())
         {
-            btn;
             return; // Exit this function
         }
     }
@@ -759,7 +755,6 @@ void setup()
         {
             Serial.print(".");
         }
-        btn;
     }
 
     Serial.println(" ");
@@ -937,48 +932,40 @@ void loop()
         // SW1 - Start cure function, or if a function is running - increase by one minute
         if (debouncedSW1.fell() && washActive == false && cureActive == false)
         {
-            btn;
             cure();
         }
         else if (debouncedSW1.fell() && washActive == true)
         {
-            btn;
             washUP();
         }
         else if (debouncedSW1.fell() && cureActive == true)
         {
-            btn;
             cureUP();
         }
 
         // SW2 - Start wash function, or if a function is running - decrease by one minute
         if (debouncedSW2.fell() && cureActive == false && washActive == false)
         {
-            btn;
             wash();
         }
         else if (debouncedSW2.fell() && cureActive == true && cureMinutes > 3)
         {
-            btn;
             cureDOWN();
         }
         else if (debouncedSW2.fell() && washActive == true && washMinutes > 3)
         {
-            btn;
             washDOWN();
         }
 
         // SW3 - Pause running function
         if (debouncedSW3.fell() && (washActive == true || cureActive == true))
         {
-            btn;
             cyclePause();
         }
 
         // SW3 - If nothing is running, bring up the EEPROM menu
         if (debouncedSW3.fell() && washActive == false && cureActive == false)
         {
-            btn;
             eepromMenu();
         }
     }
