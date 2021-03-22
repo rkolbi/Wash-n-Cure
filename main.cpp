@@ -288,22 +288,13 @@ void cyclePause()
 {
     if (washActive == true || cureActive == true)
     {
+        pauseActive = true;
         cyclePausedAt = now;
         diffPause = now - actionStartTime; // if unpaused, actionStartTime should = now - diffPause
-
         digitalWrite(FAN, LOW);
         digitalWrite(UVLED, LOW);
         digitalWrite(motorEnable, LOW);
-        if (washActive == true)
-            Serial.print("Wash ");
-        if (cureActive == true)
-            Serial.print("Cure ");
         Serial.println(" Paused.");
-        sendToOLED();
-        display.println("SW1-Resume");
-        display.println("SW2-Cancel");
-        display.display();
-        pauseActive = true;
     }
 }
 
@@ -340,6 +331,7 @@ void cycleUnPause()
         Serial.println(" UN-Paused.");
         actionStartTime = now - diffPause;
         pauseActive = false;
+        noteTimeOut = now + 2000;
     }
     return; // exit this function
 }
@@ -796,12 +788,11 @@ void loop()
     // CHECK IF PAUSED
     if (pauseActive == true)
     {
-        if (washActive == true)
-            Serial.println(" ..Wash..");
-        if (cureActive == true)
-            Serial.println(" ..Cure..");
-        Serial.print("..Paused..");
         sendToOLED();
+        if (washActive == true)
+            display.println("Paused Wsh");
+        if (cureActive == true)
+            display.println("Paused Cur");
         display.println("SW1-Resume");
         display.println("SW2-Cancel");
         display.display();
