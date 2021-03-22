@@ -521,16 +521,16 @@ void wncInfo()
         systemStatus = 50;
     if (pauseActive == true)
     {
-        if (cureActive == true && washActive == false)
+        if (cureActive == true)
             systemStatus = 401 + ((((cureSeconds * 1000) - diffPause) / 60000));
-        if (cureActive == false && washActive == true)
+        if (washActive == true)
             systemStatus = 501 + ((((washSeconds * 1000) - diffPause) / 60000));
     }
     else
     {
-        if (cureActive == true && washActive == false)
+        if (cureActive == true)
             systemStatus = 201 + ((((cureSeconds * 1000) - (now - actionStartTime)) / 60000));
-        if (cureActive == false && washActive == true)
+        if (washActive == true)
             systemStatus = 301 + ((((washSeconds * 1000) - (now - actionStartTime)) / 60000));
     }
     server.send(200, "text/plane", "[" + String(washMinutes) + "," + String(cureMinutes) + "," + String(systemStatus) + "]");
@@ -863,7 +863,7 @@ void loop()
         IRstate = digitalRead(PROX);
         if ((IRstate == HIGH && washActive == true) || (IRstate == HIGH && cureActive == true))
         {
-            Serial.println("Interlock tripper.");
+            Serial.println("Interlock tripped.");
             cyclePause();
         }
 
@@ -940,14 +940,12 @@ void loop()
             btn;
             cure();
         }
-        else if (debouncedSW1.fell() && washActive == true && cureActive == false
-            && washMinutes < 20)
+        else if (debouncedSW1.fell() && washActive == true)
         {
             btn;
             washUP();
         }
-        else if (debouncedSW1.fell() && cureActive == true && washActive == false
-            && cureMinutes < 20)
+        else if (debouncedSW1.fell() && cureActive == true)
         {
             btn;
             cureUP();
@@ -959,14 +957,12 @@ void loop()
             btn;
             wash();
         }
-        else if (debouncedSW2.fell() && cureActive == true && washActive == false
-            && cureMinutes > 3)
+        else if (debouncedSW2.fell() && cureActive == true && cureMinutes > 3)
         {
             btn;
             cureDOWN();
         }
-        else if (debouncedSW2.fell() && washActive == true && cureActive == false
-            && washMinutes > 3)
+        else if (debouncedSW2.fell() && washActive == true && washMinutes > 3)
         {
             btn;
             washDOWN();
