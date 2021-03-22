@@ -171,10 +171,10 @@ void sendToOLED()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void wash()
 {
-    Serial.println("Wash Cycle ON!");
+    Serial.print("Starting WASH cycle - ");
     washMinutes = EEPROM.read(0);
-    Serial.print("Wash value from memory: ");
-    Serial.println(washMinutes);
+    Serial.print(washMinutes);
+    Serial.print(" minutes.");
 
     washSeconds = washMinutes * 60; // Calculate wash seconds from washMinutes (minutes)
     washActive = true; // Set wash state to true
@@ -199,10 +199,10 @@ void wash()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void cure()
 {
-    Serial.println("UV Cycle ON!");
+    Serial.print("Starting CURE cycle - ");
     cureMinutes = EEPROM.read(1);
-    Serial.println("Cure value from memory");
-    Serial.println(cureMinutes);
+    Serial.print(cureMinutes);
+    Serial.print(" minutes.");
 
     cureSeconds = cureMinutes * 60; // Calculate wash seconds from cureMinutes (minutes)
     cureActive = true; // Set cure state to true
