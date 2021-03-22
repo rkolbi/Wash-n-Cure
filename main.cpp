@@ -150,8 +150,6 @@ AccelStepper stepper = AccelStepper(motorInterfaceType, stepPin, dirPin);
 const char* ssid = "WnC-Setup";
 const char* password = "password";
 const char* hostname = "washNcure";
-const char* mdns_hostname = hostname; // For WebOTA - not required
-const char* host = hostname; // For WebOTA - not required
 WebServer server(80);
 
 
