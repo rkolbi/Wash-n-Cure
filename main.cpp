@@ -351,7 +351,7 @@ void washDOWN()
     washMinutes = EEPROM.read(0);
     if (washMinutes > 1)
     {
-        if ((washActive == false) || (washActive == true && ((((washMinutes * 60000) - (now - actionStartTime)) / 60000)) > 1))
+        if ((washActive == false) || (washActive == true && (((washMinutes * 60000) - (now - actionStartTime)) / 60000) > 1))
         {
             EEPROM.write(0, --washMinutes);
             washMinutes = EEPROM.read(0);
@@ -391,7 +391,7 @@ void cureDOWN()
     cureMinutes = EEPROM.read(1);
     if (cureMinutes > 1)
     {
-        if ((cureActive == false) || (cureActive == true && ((((cureMinutes * 60000) - (now - actionStartTime)) / 60000)) > 1))
+        if ((cureActive == false) || (cureActive == true && (((cureMinutes * 60000) - (now - actionStartTime)) / 60000) > 1))
         {
             EEPROM.write(1, --cureMinutes);
             cureMinutes = EEPROM.read(1);
