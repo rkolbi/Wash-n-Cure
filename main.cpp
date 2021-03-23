@@ -115,7 +115,7 @@ int systemStatus; // systemStatus to pass to web page. 100 = Ready, 2xx = cure a
 #define now millis() // now = millis() for easier readability
 unsigned long cycleStartTime = 0; // time trigger for logic of wash and cure cycles
 unsigned long cyclePauseTime = 0; // stores the time mark when the pause state was initiated
-unsigned long cyclePauseOffset = 0; // stores the difference between how much time was left on cycleStartTime and now
+unsigned long cycleElapsedTime = 0; // stores the difference between how much time was left on cycleStartTime and now
 unsigned long messageDurationTime = 0; // time trigger for OLED display messages
 
 // EEPROM STORAGE
@@ -284,7 +284,7 @@ void cyclePause()
     {
         pauseActive = true;
         cyclePauseTime = now;
-        cyclePauseOffset = now - cycleStartTime; // if unpaused, cycleStartTime should = now - diffPause
+        cycleElapsedTime = now - cycleStartTime; // if unpaused, cycleStartTime should = now - cycleElapsedTime 
         digitalWrite(FAN, LOW);
         digitalWrite(UVLED, LOW);
         digitalWrite(motorEnable, LOW);
@@ -496,10 +496,6 @@ void handleNotFound()
 
 // SEND JSON INFORMATION TO WEB PAGE
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// This sends the JSON formatted data to the webpage. The systemStatus portion gives one of three
-// posible conditions with time remaining; 100 = Idle/Ready, 2xx = Curing with xx minutes to go,
-// 3xx - Washing with xx minutes to go. This three digit status is received by the index/root page
-// and parsed the java to yeild a more human status such as, "Washing, 20 minutes to go."
 void wncInfo()
 {
     if (cureActive == false && washActive == false)
@@ -507,9 +503,9 @@ void wncInfo()
     if (pauseActive == true)
     {
         if (cureActive == true)
-            systemStatus = 401 + (cureMinutes - (cyclePauseOffset / 60000));
+            systemStatus = 401 + (cureMinutes - (cycleElapsedTime / 60000));
         if (washActive == true)
-            systemStatus = 501 + (washMinutes - (cyclePauseOffset / 60000));
+            systemStatus = 501 + (washMinutes - (cycleElapsedTime / 60000));
     }
     else
     {
