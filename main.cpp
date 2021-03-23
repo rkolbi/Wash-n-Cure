@@ -793,7 +793,7 @@ void loop()
             }
             else
             {
-                display.print((((washMinutes * 60000) - (now - actionStartTime)) / 60000));
+                display.print(((washMinutes * 60000) - (now - actionStartTime)) / 60000);
                 if ((((washMinutes * 60000) - (now - actionStartTime)) / 60000) > 1)
                 {
                     display.println(" minutes");
@@ -818,7 +818,7 @@ void loop()
             }
             else
             {
-                display.print((((cureMinutes * 60000) - (now - actionStartTime)) / 60000));
+                display.print(((cureMinutes * 60000) - (now - actionStartTime)) / 60000);
                 if ((((cureMinutes * 60000) - (now - actionStartTime)) / 60000) > 1)
                 {
                     display.println(" minutes");
@@ -948,7 +948,8 @@ void loop()
         // SW3 - Pause running function
         if (debouncedSW3.fell() && (washActive == true || cureActive == true))
         {
-            cyclePause();
+            if (pauseActive == false)
+                cyclePause();
         }
 
         // SW3 - If nothing is running, bring up the EEPROM menu
