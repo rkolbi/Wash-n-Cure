@@ -919,11 +919,11 @@ void loop()
         {
             wash();
         }
-        else if (debouncedSW2.fell() && cureActive == true && cureMinutes > 3)
+        else if (debouncedSW2.fell() && cureActive == true)
         {
             cureDOWN();
         }
-        else if (debouncedSW2.fell() && washActive == true && washMinutes > 3)
+        else if (debouncedSW2.fell() && washActive == true)
         {
             washDOWN();
         }
