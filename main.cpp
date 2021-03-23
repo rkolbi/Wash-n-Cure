@@ -351,7 +351,7 @@ void washDOWN()
     washMinutes = EEPROM.read(0);
     if (washMinutes > 1)
     {
-        if ((washActive == false) || (washActive == true && (((washMinutes * 60000) - (now - actionStartTime)) / 60000) > 1))
+        if ((washActive == false) || (washActive == true && (washMinutes - ((now - actionStartTime) / 60000)) > 1))
         {
             EEPROM.write(0, --washMinutes);
             washMinutes = EEPROM.read(0);
@@ -391,7 +391,8 @@ void cureDOWN()
     cureMinutes = EEPROM.read(1);
     if (cureMinutes > 1)
     {
-        if ((cureActive == false) || (cureActive == true && (((cureMinutes * 60000) - (now - actionStartTime)) / 60000) > 1))
+        
+        if ((cureActive == false) || (cureActive == true && (cureMinutes - ((now - actionStartTime) / 60000)) > 1))
         {
             EEPROM.write(1, --cureMinutes);
             cureMinutes = EEPROM.read(1);
@@ -506,16 +507,16 @@ void wncInfo()
     if (pauseActive == true)
     {
         if (cureActive == true)
-            systemStatus = 401 + (((cureMinutes * 60000) - diffPause) / 60000);
+            systemStatus = 401 + (cureMinutes - (diffPause / 60000));
         if (washActive == true)
-            systemStatus = 501 + (((washMinutes * 60000) - diffPause) / 60000);
+            systemStatus = 501 + (washMinutes - (diffPause / 60000));
     }
     else
     {
         if (cureActive == true)
-            systemStatus = 201 + (((cureMinutes * 60000) - (now - actionStartTime)) / 60000);
+            systemStatus = 201 + (cureMinutes - ((now - actionStartTime) / 60000));
         if (washActive == true)
-            systemStatus = 301 + (((washMinutes * 60000) - (now - actionStartTime)) / 60000);
+            systemStatus = 301 + (washMinutes - ((now - actionStartTime) / 60000));
     }
     server.send(200, "text/plane", "[" + String(washMinutes) + "," + String(cureMinutes) + "," + String(systemStatus) + "]");
 }
@@ -787,14 +788,8 @@ void loop()
         {
             sendToOLED();
             display.println("Washing...");
-            if ((((washMinutes * 60000) - (now - actionStartTime)) / 60000) == 0)
-            {
-                display.println("<1 minute");
-            }
-            else
-            {
-                display.print(((washMinutes * 60000) - (now - actionStartTime)) / 60000);
-                if ((((washMinutes * 60000) - (now - actionStartTime)) / 60000) > 1)
+            display.print((washMinutes - ((now - actionStartTime) / 60000)));
+                if ((washMinutes - ((now - actionStartTime) / 60000)) > 1)
                 {
                     display.println(" minutes");
                 }
@@ -802,7 +797,6 @@ void loop()
                 {
                     display.println(" minute");
                 }
-            }
             display.println("remaining.");
             display.display();
         }
@@ -812,14 +806,8 @@ void loop()
         {
             sendToOLED();
             display.println("Curing...");
-            if ((((cureMinutes * 60000) - (now - actionStartTime)) / 60000) == 0)
-            {
-                display.println("<1 minute");
-            }
-            else
-            {
-                display.print(((cureMinutes * 60000) - (now - actionStartTime)) / 60000);
-                if ((((cureMinutes * 60000) - (now - actionStartTime)) / 60000) > 1)
+            display.print((cureMinutes - ((now - actionStartTime) / 60000)));
+                if ((cureMinutes - ((now - actionStartTime) / 60000)) > 1)
                 {
                     display.println(" minutes");
                 }
@@ -827,7 +815,6 @@ void loop()
                 {
                     display.println(" minute");
                 }
-            }
             display.println("remaining.");
             display.display();
         }

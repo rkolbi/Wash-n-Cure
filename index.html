@@ -48,9 +48,6 @@ function getData() {
         if (myArr[2] == 50) {
           document.getElementById("status").innerHTML = "Ready.";
         }
-        if (myArr[2] == 201) {
-          document.getElementById("status").innerHTML = "Currently curing, <1 minute remaining.";
-        }
         if (myArr[2] == 202) {
           document.getElementById("status").innerHTML = "Currently curing, 1 minute remaining.";
         }
@@ -58,9 +55,6 @@ function getData() {
           var mleft = myArr[2] - 201;
           document.getElementById("status").innerHTML = "Currently curing, " + mleft + " minutes remaining.";
         }
-        if (myArr[2] == 301) {
-          document.getElementById("status").innerHTML = "Currently washing, <1 minute remaining.";
-        }      
         if (myArr[2] == 302) {
           document.getElementById("status").innerHTML = "Currently washing, 1 minute remaining.";
         }   
