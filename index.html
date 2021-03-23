@@ -13,8 +13,7 @@ a:active { text-decoration: underline; color: #ebedef; }
 .header { padding: 5px; text-align: center; background: #85929e; color: #1c2833; font-size: 20px; }
 .footer { position: fixed; left: 0; bottom: 0; width: 100%; background-color: #85929e; color: #ebedef; text-align: center; }
 .table, th, td { border: 0px solid black; border-collapse: collapse; text-align: center; }
-</style><body style="text-align:center;">
-<center><div>
+</style><body style="text-align:center;"><center><div>
 <div class="header"><big><i><b>Wash & Cure</big></b></i><br><small>Resin printing post processing station control.</small></div><br><br>
 System Status: <span id="status"></span>
 <br><br><br><table>
@@ -23,10 +22,7 @@ System Status: <span id="status"></span>
   <tr><td><span id="wash_val">0</span></td><td></td><td><span id="cure_val">0</span></td></tr>
   <tr><td><button onclick="send(2)">&#x2207 Wash &#x2207</button></td><td></td><td><button onclick="send(4)">&#x2207 Cure &#x2207</button></td></tr>
   <tr><td></td><td><br></td><td></td></tr></table>
-<br><br>
-<table><tr><td><button onclick="send(6)">&#x220E PAUSE &#x220E</button></td></tr><tr><td><button onclick="send(7)">&#x220E STOP &#x220E</button></td></tr><tr><td><button onclick="send(5)">&#x21AF SAVE &#x21AF</button></td></tr></table>
-</div>
-<br><br><br><br>
+<br><br><table><tr><td><button onclick="send(6)">&#x25A3 PAUSE &#x25A3</button></td></tr><tr><td><button onclick="send(7)">&#x220E STOP &#x220E</button></td></tr><tr><td><button onclick="send(5)">&#x21AF SAVE &#x21AF</button></td></tr></table></div>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
   getData();
@@ -37,7 +33,6 @@ function send(data)
   xhttp.open("GET", "wncchange?go="+data, true);
   xhttp.send();
   setTimeout(function() { getData(); }, 3);
-
 }
 setInterval(function() 
 {
@@ -88,7 +83,7 @@ function getData() {
   xhttp.send();
 }
 </script>
-<div class="footer"><p><script>document.write('<a href="' + window.location.protocol + '//' + window.location.hostname + ':777' + window.location.pathname + 'update" >revision: 0.7.6</a> ' );</script></p></div>
+<div class="footer"><p><script>document.write('<a href="' + window.location.protocol + '//' + window.location.hostname + ':777' + window.location.pathname + 'update" >revision: 0.8.0</a> ' );</script></p></div>
 </center>
 </body>
 </html>

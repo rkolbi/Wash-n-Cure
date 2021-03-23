@@ -1,7 +1,7 @@
 /*
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//// Wash-n-Cure Rev 0.7.6 (ALPHA)
+//// Wash-n-Cure Rev 0.8.0 (ALPHA)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 -WiFi manager installed. OLED will display current IP for 10 seconds upon boot/reboot.
 
@@ -107,8 +107,6 @@ boolean washDirection = false; // Initial wash direction
 boolean washActive = false; // Initial wash state
 boolean cureActive = false; // Initial cure state
 boolean pauseActive = false; // Initial pause state
-int washSeconds; // int for wash cycle seconds
-int cureSeconds; // int for cure cycle seconds
 int systemStatus; // systemStatus to pass to web page. 100 = Ready, 2xx = cure and minutes,
 //                   3xx = wash and minutes, 4xx = paused-cure and minutes,
 //                   5xx = paused-wash and minutes.
@@ -176,7 +174,6 @@ void wash()
     Serial.print(washMinutes);
     Serial.print(" minutes.");
 
-    washSeconds = washMinutes * 60; // Calculate wash seconds from washMinutes (minutes)
     washActive = true; // Set wash state to true
     actionStartTime = now; // Reset the time trigger
     digitalWrite(FAN, HIGH); // Turn on the fan
@@ -204,7 +201,6 @@ void cure()
     Serial.print(cureMinutes);
     Serial.print(" minutes.");
 
-    cureSeconds = cureMinutes * 60; // Calculate wash seconds from cureMinutes (minutes)
     cureActive = true; // Set cure state to true
     actionStartTime = now; // Reset the time trigger
     digitalWrite(FAN, HIGH); // Turn on the fan
@@ -304,7 +300,6 @@ void cycleUnPause()
     {
         if (washActive == true)
         {
-            washSeconds = washMinutes * 60; // Calculate wash seconds from washMinutes (minutes)
             digitalWrite(FAN, HIGH); // Turn on the fan
             digitalWrite(motorEnable, HIGH); // Enable the motor
             stepper.setSpeed(8000); // Set the motor speed
@@ -315,7 +310,6 @@ void cycleUnPause()
         }
         else
         {
-            cureSeconds = cureMinutes * 60; // Calculate wash seconds from cureMinutes (minutes)
             digitalWrite(FAN, HIGH); // Turn on the fan
             digitalWrite(motorEnable, HIGH); // Enable the motor
             digitalWrite(UVLED, HIGH); // Turn on the UV lamp
@@ -329,7 +323,6 @@ void cycleUnPause()
         Serial.println(" UN-Paused.");
         actionStartTime = now - diffPause;
         pauseActive = false;
-        noteTimeOut = now + 2000;
     }
     return; // exit this function
 }
@@ -341,7 +334,6 @@ void washUP()
     washMinutes = EEPROM.read(0);
     EEPROM.write(0, ++washMinutes);
     washMinutes = EEPROM.read(0);
-    washSeconds = washMinutes * 60;
     Serial.print("+New wash time: ");
     Serial.println(washMinutes);
 
@@ -359,11 +351,10 @@ void washDOWN()
     washMinutes = EEPROM.read(0);
     if (washMinutes > 1)
     {
-        if ((washActive == false) || (washActive == true && ((((washSeconds * 1000) - (now - actionStartTime)) / 60000)) > 1))
+        if ((washActive == false) || (washActive == true && ((((washMinutes * 60000) - (now - actionStartTime)) / 60000)) > 1))
         {
             EEPROM.write(0, --washMinutes);
             washMinutes = EEPROM.read(0);
-            washSeconds = washMinutes * 60;
             Serial.println("-New wash time: ");
             Serial.print(washMinutes);
 
@@ -383,7 +374,6 @@ void cureUP()
     cureMinutes = EEPROM.read(1);
     EEPROM.write(1, ++cureMinutes);
     cureMinutes = EEPROM.read(1);
-    cureSeconds = cureMinutes * 60;
     Serial.print("+New cure time: ");
     Serial.println(cureMinutes);
 
@@ -401,11 +391,10 @@ void cureDOWN()
     cureMinutes = EEPROM.read(1);
     if (cureMinutes > 1)
     {
-        if ((cureActive == false) || (cureActive == true && ((((cureSeconds * 1000) - (now - actionStartTime)) / 60000)) > 1))
+        if ((cureActive == false) || (cureActive == true && ((((cureMinutes * 60000) - (now - actionStartTime)) / 60000)) > 1))
         {
             EEPROM.write(1, --cureMinutes);
             cureMinutes = EEPROM.read(1);
-            cureSeconds = cureMinutes * 60;
             Serial.print("-New cure time: ");
             Serial.println(cureMinutes);
 
@@ -517,16 +506,16 @@ void wncInfo()
     if (pauseActive == true)
     {
         if (cureActive == true)
-            systemStatus = 401 + ((((cureSeconds * 1000) - diffPause) / 60000));
+            systemStatus = 401 + (((cureMinutes * 60000) - diffPause) / 60000);
         if (washActive == true)
-            systemStatus = 501 + ((((washSeconds * 1000) - diffPause) / 60000));
+            systemStatus = 501 + (((washMinutes * 60000) - diffPause) / 60000);
     }
     else
     {
         if (cureActive == true)
-            systemStatus = 201 + ((((cureSeconds * 1000) - (now - actionStartTime)) / 60000));
+            systemStatus = 201 + (((cureMinutes * 60000) - (now - actionStartTime)) / 60000);
         if (washActive == true)
-            systemStatus = 301 + ((((washSeconds * 1000) - (now - actionStartTime)) / 60000));
+            systemStatus = 301 + (((washMinutes * 60000) - (now - actionStartTime)) / 60000);
     }
     server.send(200, "text/plane", "[" + String(washMinutes) + "," + String(cureMinutes) + "," + String(systemStatus) + "]");
 }
@@ -731,7 +720,7 @@ void setup()
 
     // Show version and IP on OLED
     sendToOLED();
-    display.println("WnC 0.7.6");
+    display.println("WnC 0.8.0");
     display.println(WiFi.localIP());
     display.display();
     noteTimeOut = now + 10000;
@@ -798,14 +787,14 @@ void loop()
         {
             sendToOLED();
             display.println("Washing...");
-            if ((((washSeconds * 1000) - (now - actionStartTime)) / 60000) == 0)
+            if ((((washMinutes * 60000) - (now - actionStartTime)) / 60000) == 0)
             {
                 display.println("<1 minute");
             }
             else
             {
-                display.print((((washSeconds * 1000) - (now - actionStartTime)) / 60000));
-                if ((((washSeconds * 1000) - (now - actionStartTime)) / 60000) > 1)
+                display.print((((washMinutes * 60000) - (now - actionStartTime)) / 60000));
+                if ((((washMinutes * 60000) - (now - actionStartTime)) / 60000) > 1)
                 {
                     display.println(" minutes");
                 }
@@ -823,14 +812,14 @@ void loop()
         {
             sendToOLED();
             display.println("Curing...");
-            if ((((cureSeconds * 1000) - (now - actionStartTime)) / 60000) == 0)
+            if ((((cureMinutes * 60000) - (now - actionStartTime)) / 60000) == 0)
             {
                 display.println("<1 minute");
             }
             else
             {
-                display.print((((cureSeconds * 1000) - (now - actionStartTime)) / 60000));
-                if ((((cureSeconds * 1000) - (now - actionStartTime)) / 60000) > 1)
+                display.print((((cureMinutes * 60000) - (now - actionStartTime)) / 60000));
+                if ((((cureMinutes * 60000) - (now - actionStartTime)) / 60000) > 1)
                 {
                     display.println(" minutes");
                 }
@@ -862,14 +851,14 @@ void loop()
         }
 
         // WASH CYCLE CHECK
-        if (washActive == true && ((now - actionStartTime) > (washSeconds * 1000)))
+        if (washActive == true && ((now - actionStartTime) > (washMinutes * 60000)))
         {
             Serial.println("Washing stopped by timer.");
             washoff();
         }
 
         // CURE CYCLE CHECK
-        if (cureActive == true && ((now - actionStartTime) > (cureSeconds * 1000)))
+        if (cureActive == true && ((now - actionStartTime) > (cureMinutes * 60000)))
         {
             Serial.println("UV Cure stopped by timer.");
             cureoff();
