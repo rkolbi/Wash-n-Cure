@@ -229,24 +229,18 @@ if (cureActive == true)
     {
     Serial.println("Cure Cycle Finished!");
     display.println("Curing ");
-    display.print(" Done!");
+    display.println(" Done!");
     }
-if (washActive == true)
+else
     {
     Serial.println("Wash Cycle Finished!");
     display.println("Washing");
-    display.print(" Done!");
+    display.println(" Done!");
     }
-if (washActive == false && cureActive == false)
-    {
-    Serial.println("Stopping all functions.");
-    display.println(" Stopping");
-    display.print  ("   All!");
-    }
+
     cureActive = false;
     washActive = false;
     pauseActive = false;
-    display.print("");
     display.display();
     messageDurationTime = now + 2000;
     return;
@@ -812,14 +806,12 @@ void loop()
         // WASH CYCLE CHECK
         if (washActive == true && ((now - cycleStartTime) > (washMinutes * 60000)))
         {
-            Serial.println("Washing stopped by timer.");
             StopAll();
         }
 
         // CURE CYCLE CHECK
         if (cureActive == true && ((now - cycleStartTime) > (cureMinutes * 60000)))
         {
-            Serial.println("UV Cure stopped by timer.");
             StopAll();
         }
 
