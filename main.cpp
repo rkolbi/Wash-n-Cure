@@ -115,7 +115,7 @@ int systemStatus; // systemStatus to pass to web page. 100 = Ready, 2xx = cure a
 #define now millis() // now = millis() for easier readability
 unsigned long cycleStartTime = 0; // time trigger for logic of wash and cure cycles
 unsigned long cyclePauseTime = 0; // stores the time mark when the pause state was initiated
-unsigned long cycleElapsedTime = 0; // stores the difference between how much time was left on cycleStartTime and now
+unsigned long cycleElapsedTime = 0; // stores how much time the cycle was run for, before being paused
 unsigned long messageDurationTime = 0; // time trigger for OLED display messages
 
 // EEPROM STORAGE
@@ -321,7 +321,7 @@ void cycleUnPause()
         if (cureActive == true)
             Serial.print("Cure ");
         Serial.println(" UN-Paused.");
-        cycleStartTime = now - diffPause;
+        cycleStartTime = now - cycleElapsedTime;
         pauseActive = false;
     }
     return; // exit this function
