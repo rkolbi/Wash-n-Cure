@@ -225,19 +225,18 @@ void StopAll()
     digitalWrite(UVLED, LOW);
     digitalWrite(motorEnable, LOW);
     sendToOLED();
-if (cureActive == true)
+    if (cureActive == true)
     {
-    Serial.println("Cure Cycle Finished!");
-    display.println("Curing ");
-    display.println(" Done!");
+        Serial.println("Cure Cycle Finished!");
+        display.println("Curing ");
+        display.println(" Done!");
     }
-else
+    else
     {
-    Serial.println("Wash Cycle Finished!");
-    display.println("Washing");
-    display.println(" Done!");
+        Serial.println("Wash Cycle Finished!");
+        display.println("Washing");
+        display.println(" Done!");
     }
-
     cureActive = false;
     washActive = false;
     pauseActive = false;
