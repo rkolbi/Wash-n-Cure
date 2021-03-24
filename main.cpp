@@ -818,18 +818,16 @@ void loop()
         // BEEN COMPLETED
         if (stepper.distanceToGo() == 0 && washActive == true)
         {
+            stepper.setCurrentPosition(0); // Set starting position as 0
+            Serial.println("Changing stepper direction.");
             if (washDirection == true)
             {
-                stepper.setCurrentPosition(0); // Set starting position as 0
                 stepper.moveTo((washSteps * -1)); // Move stepper x steps
-                Serial.println("Changing stepper direction to reverse.");
                 washDirection = false;
             }
             else
             {
-                stepper.setCurrentPosition(0); // Set starting position as 0
                 stepper.moveTo(washSteps); // Move stepper x steps
-                Serial.println("Changing stepper direction to forward.");
                 washDirection = true;
             }
         }
