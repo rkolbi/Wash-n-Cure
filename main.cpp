@@ -217,43 +217,6 @@ void cure()
     return;
 }
 
-// STOP THE WASH FUNCTION
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void washoff()
-{
-    digitalWrite(FAN, LOW);
-    digitalWrite(motorEnable, LOW);
-
-    washActive = false;
-    Serial.println("Wash Cycle Finished! Returning to main loop");
-
-    sendToOLED();
-    display.println("Washing");
-    display.print(" Done!");
-    display.display();
-    messageDurationTime = now + 2000;
-    return;
-}
-
-// STOP THE CURE FUNCTION
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void cureoff()
-{
-    digitalWrite(FAN, LOW);
-    digitalWrite(motorEnable, LOW);
-    digitalWrite(UVLED, LOW);
-
-    cureActive = false;
-    Serial.println("UV Cycle Finished! Returning to main loop");
-
-    sendToOLED();
-    display.println("Curing ");
-    display.print(" Done!");
-    display.display();
-    messageDurationTime = now + 2000;
-    return;
-}
-
 // STOP ALL WASH AND CURE FUNCTION
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void StopAll()
@@ -261,15 +224,28 @@ void StopAll()
     digitalWrite(FAN, LOW);
     digitalWrite(UVLED, LOW);
     digitalWrite(motorEnable, LOW);
-
+    sendToOLED();
+if (cureActive == true)
+    {
+    Serial.println("Cure Cycle Finished!");
+    display.println("Curing ");
+    display.print(" Done!");
+    }
+if (washActive == true)
+    {
+    Serial.println("Wash Cycle Finished!");
+    display.println("Washing");
+    display.print(" Done!");
+    }
+if (washActive == false && cureActive == false)
+    {
+    Serial.println("Stopping all functions.");
+    display.println(" Stopping");
+    display.print  ("   All!");
+    }
     cureActive = false;
     washActive = false;
     pauseActive = false;
-    Serial.println("Stopping all functions!");
-
-    sendToOLED();
-    display.println("   All");
-    display.println("   Stop  ");
     display.print("");
     display.display();
     messageDurationTime = now + 2000;
@@ -837,14 +813,14 @@ void loop()
         if (washActive == true && ((now - cycleStartTime) > (washMinutes * 60000)))
         {
             Serial.println("Washing stopped by timer.");
-            washoff();
+            StopAll();
         }
 
         // CURE CYCLE CHECK
         if (cureActive == true && ((now - cycleStartTime) > (cureMinutes * 60000)))
         {
             Serial.println("UV Cure stopped by timer.");
-            cureoff();
+            StopAll();
         }
 
         // STEPPER MOTOR CHECK - IF WASHING, CHECK STEPS TO GO AND REVERSE DIRECTION IF STEPS HAVE
