@@ -41,9 +41,9 @@ To do:
     1 - OTA firmware update & web interface
     1 - StopAll function from web interface
     1 - Time management from web interface
-    0 - Time management from button
-    0 - Pause function from web interface
-    0 - Pause function from button
+    1 - Time management from button
+    1 - Pause function from web interface
+    1 - Pause function from button
     0 - Stepper motion control (wash)
     0 - Stepper motion control (cure)
 
@@ -103,6 +103,8 @@ Bounce debouncedSW3 = Bounce(); // Bounce instance for SW3
 #define CureDefault 20 // Factory restore value
 #define WashDefault 8 // Factory restore value
 int washSteps = 2000; // Number of motor step before reversing direction when washing
+int washSpeed = 1000;
+int cureSpeed = 400;
 boolean washDirection = false; // Initial wash direction
 boolean washActive = false; // Initial wash state
 boolean cureActive = false; // Initial cure state
@@ -131,13 +133,11 @@ int cureMinutes; // Store the curing timer value
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
-// STEPER DRIVER SUPPORT
+
+// STEPER DRIVER SUPPORT - A4988 Step Pin = ESP Pin 33, A4988 Direction Pin = ESP Pin 25 
 #include <AccelStepper.h>
-#define dirPin 25 // Stepper driver DIR pin
-#define stepPin 33 // Stepper driver STP pin
-#define motorInterfaceType 1 // Must be set to 1 when using a driver
-#define motorEnable 26 // Stepper driver VDD pin
-AccelStepper stepper = AccelStepper(motorInterfaceType, stepPin, dirPin);
+#define motorEnable 26 // A4988 VDD Pin = ESP Pin 26
+AccelStepper stepper(AccelStepper::DRIVER, 33, 25);
 
 // NETWORKING SUPPORT
 #include <WebOTA.h>
@@ -178,7 +178,7 @@ void wash()
     cycleStartTime = now; // Reset the time trigger
     digitalWrite(FAN, HIGH); // Turn on the fan
     digitalWrite(motorEnable, HIGH); // Enable the motor
-    stepper.setSpeed(8000); // Set the motor speed
+    stepper.setSpeed(washSpeed); // Set the motor speed
     stepper.setAcceleration(100); // Set the stepper acceleration
     stepper.setCurrentPosition(0); // Set starting position as 0
     stepper.moveTo(washSteps); // Move stepper x steps
@@ -206,7 +206,7 @@ void cure()
     digitalWrite(FAN, HIGH); // Turn on the fan
     digitalWrite(motorEnable, HIGH); // Enable the motor
     digitalWrite(UVLED, HIGH); // Turn on the UV lamp
-    stepper.setSpeed(500); // Set the motor speed
+    stepper.setSpeed(cureSpeed); // Set the motor speed
     stepper.runSpeed(); // Start the motor
 
     sendToOLED();
@@ -271,7 +271,7 @@ void cycleUnPause()
         {
             digitalWrite(FAN, HIGH); // Turn on the fan
             digitalWrite(motorEnable, HIGH); // Enable the motor
-            stepper.setSpeed(8000); // Set the motor speed
+            stepper.setSpeed(washSpeed); // Set the motor speed
             stepper.setAcceleration(100); // Set the stepper acceleration
             stepper.setCurrentPosition(0); // Set starting position as 0
             stepper.moveTo(washSteps); // Move stepper x steps
@@ -282,7 +282,7 @@ void cycleUnPause()
             digitalWrite(FAN, HIGH); // Turn on the fan
             digitalWrite(motorEnable, HIGH); // Enable the motor
             digitalWrite(UVLED, HIGH); // Turn on the UV lamp
-            stepper.setSpeed(500); // Set the motor speed
+            stepper.setSpeed(cureSpeed); // Set the motor speed
             stepper.runSpeed(); // Start the motor
         }
         if (washActive == true)
@@ -642,7 +642,7 @@ void setup()
     webota.init(777, "/update"); // Setup web over-the-air update port and directory
 
     // SET UP STEPPER CONTROL
-    stepper.setMaxSpeed(8000); // Set max stepper speed to 8000
+    stepper.setMaxSpeed(washSpeed); // Set max stepper speed to 8000
     stepper.setAcceleration(100); // Set stepper acceleration to 100
 
     // DEFINE GPIO FUNCTIONS
