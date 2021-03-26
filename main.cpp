@@ -80,7 +80,7 @@ lib_deps =
 //// LIBRARIES & DECLARATIONS               LIBRARIES & DECLARATIONS                LIBRARIES & DECLARATIONS
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-// BASE LIBRARIES
+// BOARD & BASE LIBRARIES
 #include <Arduino.h>
 #include <Wire.h>
 #include <Bounce2.h>
@@ -102,9 +102,10 @@ Bounce debouncedSW3 = Bounce(); // Bounce instance for SW3
 // WASH AND CURE VARIABLES
 #define CureDefault 20 // Factory restore value
 #define WashDefault 8 // Factory restore value
-int washSteps = 20000; // Number of motor step before reversing direction when washing
-int washSpeed = 99999;
-int cureSpeed = 100;
+int washSteps = 1000000; // Number of motor step before reversing direction when washing
+int washSpeed = 10000;
+int cureSpeed = 200;
+int accelSpeed = 1000;
 boolean washDirection = false; // Initial wash direction
 boolean washActive = false; // Initial wash state
 boolean cureActive = false; // Initial cure state
@@ -180,7 +181,6 @@ void wash()
     digitalWrite(FAN, HIGH); // Turn on the fan
     digitalWrite(motorEnable, HIGH); // Enable the motor
     stepper.setSpeed(washSpeed); // Set the motor speed
-    stepper.setAcceleration(201); // Set the stepper acceleration
     stepper.setCurrentPosition(0); // Set starting position as 0
     stepper.moveTo(washSteps); // Move stepper x steps
     washDirection = true; // Motor moves clockwise
@@ -273,7 +273,6 @@ void cycleUnPause()
             digitalWrite(FAN, HIGH); // Turn on the fan
             digitalWrite(motorEnable, HIGH); // Enable the motor
             stepper.setSpeed(washSpeed); // Set the motor speed
-            stepper.setAcceleration(201); // Set the stepper acceleration
             stepper.setCurrentPosition(0); // Set starting position as 0
             stepper.moveTo(washSteps); // Move stepper x steps
             washDirection = true; // Motor moves clockwise
@@ -360,8 +359,7 @@ void cureDOWN()
 {
     cureMinutes = EEPROM.read(1);
     if (cureMinutes > 1)
-    {
-        
+    { 
         if ((cureActive == false) || (cureActive == true && (cureMinutes - ((now - cycleStartTime) / 60000)) > 1))
         {
             EEPROM.write(1, --cureMinutes);
@@ -389,13 +387,6 @@ void eepromMenu()
     display.print("SW3-Exit");
     display.display();
 
-    // NO DOUBLE-TAP
-    debouncedSW3.update();
-    delay(100);
-    debouncedSW3.update();
-    delay(100);
-
-    Serial.println(".");
     cycleStartTime = now; // Reset the time trigger
     while ((now - cycleStartTime) < 10000) // Give 10 seconds for a response
     {
@@ -436,9 +427,7 @@ void eepromMenu()
 
         // SW3 - Exit EEPROM menu
         if (debouncedSW3.fell())
-        {
             return; // Exit this function
-        }
     }
     Serial.println("Timed-out of EEPROM Menu.");
 }
@@ -566,14 +555,13 @@ void handleEepromSave()
     handleRoot();
 }
 
-
-
-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //// SETUP           SETUP           SETUP            SETUP            SETUP           SETUP           SETUP
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void setup()
 {
+   disableCore0WDT(); // Stop the watchdog timer
+
     // SET UP SERIAL PORT
     Serial.begin(9600); // Set board's serial speed for terminal communcation
 
@@ -643,8 +631,8 @@ void setup()
     webota.init(777, "/update"); // Setup web over-the-air update port and directory
 
     // SET UP STEPPER CONTROL
-    stepper.setMaxSpeed(99999); // Set max stepper speed to 8000
-    stepper.setAcceleration(201); // Set stepper acceleration to 100
+    stepper.setMaxSpeed(washSpeed); // Set max stepper speed to 8000
+    stepper.setAcceleration(accelSpeed); // Set stepper acceleration to 100
 
     // DEFINE GPIO FUNCTIONS
     pinMode(PROX, INPUT); // Set PROX pin as an input
@@ -707,9 +695,7 @@ void setup()
     {
         debouncedSW3.update();
         if (debouncedSW3.fell())
-        {
             Serial.print(".");
-        }
     }
 
     Serial.println(" ");
@@ -726,14 +712,12 @@ void setup()
 void loop()
 {
     // RUN OTA UPDATE SERVICE
-    webota.handle();
+    if (washActive == false || (washActive == true && pauseActive == true))
+        webota.handle();
 
     // RUN THE WEB SERVER
-    server.handleClient();
-
-    // CHECK IF PAUSE TIME HAS EXPIRED
-    if (pauseActive == true && (now - cyclePauseTime) > 600000)
-        StopAll();
+    if (washActive == false || (washActive == true && pauseActive == true))
+        server.handleClient();
 
     // CHECK IF PAUSED
     if (pauseActive == true)
@@ -746,6 +730,9 @@ void loop()
         display.println("SW1-Resume");
         display.println("SW2-Cancel");
         display.display();
+        
+        if ((now - cyclePauseTime) > 600000) // CHECK IF PAUSE TIME HAS EXPIRED
+            StopAll();
     }
     else
     {
@@ -805,51 +792,41 @@ void loop()
             cyclePause();
         }
 
-        // WASH CYCLE CHECK
-        if (washActive == true && ((now - cycleStartTime) > (washMinutes * 60000)))
+        // STEPPER MOTOR CHECK - IF CURING, KEEP STEPPER MOVING
+        if (cureActive == true)
         {
-            StopAll();
-        }
-
-        // CURE CYCLE CHECK
-        if (cureActive == true && ((now - cycleStartTime) > (cureMinutes * 60000)))
-        {
-            StopAll();
-        }
-
-        // STEPPER MOTOR CHECK - IF WASHING, CHECK STEPS TO GO AND REVERSE DIRECTION IF STEPS HAVE
-        // BEEN COMPLETED
-        if (stepper.distanceToGo() == 0 && washActive == true)
-        {
-            stepper.setCurrentPosition(0); // Set starting position as 0
-            Serial.println("Changing stepper direction.");
-            if (washDirection == true)
-            {
-                stepper.moveTo((washSteps * -1)); // Move stepper x steps
-                washDirection = false;
-            }
-            else
-            {
-                stepper.moveTo(washSteps); // Move stepper x steps
-                washDirection = true;
-            }
+            stepper.runSpeed();
+            if ((now - cycleStartTime) > (cureMinutes * 60000)) // CURE CYCLE CHECK
+                StopAll();
+        
         }
 
         // STEPPER MOTOR CHECK - IF WASHING, KEEP STEPPER MOVING
         if (washActive == true)
         {
             stepper.run();
-        }
 
-        // STEPPER MOTOR CHECK - IF CURING, KEEP STEPPER MOVING
-        if (cureActive == true)
-        {
-            stepper.runSpeed();
+            // STEPPER MOTOR CHECK - IF WASHING, CHECK STEPS TO GO AND REVERSE DIRECTION IF STEPS COMPLETED
+            if (stepper.distanceToGo() == 0)
+            {
+                stepper.setCurrentPosition(0); // Set starting position as 0
+                Serial.println("Changing stepper direction.");
+                if (washDirection == true)
+                {
+                    stepper.moveTo((washSteps * -1)); // Move stepper x steps
+                    washDirection = false;
+                }
+                else
+                {
+                    stepper.moveTo(washSteps); // Move stepper x steps
+                    washDirection = true;
+                }
+            }
+            if ((now - cycleStartTime) > (washMinutes * 60000)) // WASH CYCLE CHECK
+                StopAll();
         }
     }
 
- 
- 
  
     // SWITCH CONTROL
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
