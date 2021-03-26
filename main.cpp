@@ -102,9 +102,9 @@ Bounce debouncedSW3 = Bounce(); // Bounce instance for SW3
 // WASH AND CURE VARIABLES
 #define CureDefault 20 // Factory restore value
 #define WashDefault 8 // Factory restore value
-int washSteps = 2000; // Number of motor step before reversing direction when washing
-int washSpeed = 1000;
-int cureSpeed = 400;
+int washSteps = 20000; // Number of motor step before reversing direction when washing
+int washSpeed = 99999;
+int cureSpeed = 100;
 boolean washDirection = false; // Initial wash direction
 boolean washActive = false; // Initial wash state
 boolean cureActive = false; // Initial cure state
@@ -119,6 +119,7 @@ unsigned long cycleStartTime = 0; // time trigger for logic of wash and cure cyc
 unsigned long cyclePauseTime = 0; // stores the time mark when the pause state was initiated
 unsigned long cycleElapsedTime = 0; // stores how much time the cycle was run for, before being paused
 unsigned long messageDurationTime = 0; // time trigger for OLED display messages
+unsigned long messageSent = 0;
 
 // EEPROM STORAGE
 #include <EEPROM.h>
@@ -179,7 +180,7 @@ void wash()
     digitalWrite(FAN, HIGH); // Turn on the fan
     digitalWrite(motorEnable, HIGH); // Enable the motor
     stepper.setSpeed(washSpeed); // Set the motor speed
-    stepper.setAcceleration(100); // Set the stepper acceleration
+    stepper.setAcceleration(201); // Set the stepper acceleration
     stepper.setCurrentPosition(0); // Set starting position as 0
     stepper.moveTo(washSteps); // Move stepper x steps
     washDirection = true; // Motor moves clockwise
@@ -272,7 +273,7 @@ void cycleUnPause()
             digitalWrite(FAN, HIGH); // Turn on the fan
             digitalWrite(motorEnable, HIGH); // Enable the motor
             stepper.setSpeed(washSpeed); // Set the motor speed
-            stepper.setAcceleration(100); // Set the stepper acceleration
+            stepper.setAcceleration(201); // Set the stepper acceleration
             stepper.setCurrentPosition(0); // Set starting position as 0
             stepper.moveTo(washSteps); // Move stepper x steps
             washDirection = true; // Motor moves clockwise
@@ -642,8 +643,8 @@ void setup()
     webota.init(777, "/update"); // Setup web over-the-air update port and directory
 
     // SET UP STEPPER CONTROL
-    stepper.setMaxSpeed(washSpeed); // Set max stepper speed to 8000
-    stepper.setAcceleration(100); // Set stepper acceleration to 100
+    stepper.setMaxSpeed(99999); // Set max stepper speed to 8000
+    stepper.setAcceleration(201); // Set stepper acceleration to 100
 
     // DEFINE GPIO FUNCTIONS
     pinMode(PROX, INPUT); // Set PROX pin as an input
@@ -749,7 +750,7 @@ void loop()
     else
     {
         // OLED STATUS CHECK - WASHING
-        if (washActive == true && now > messageDurationTime)
+        if (washActive == true && now > messageDurationTime && (washMinutes - ((now - cycleStartTime) / 60000)) != messageSent)
         {
             sendToOLED();
             display.println("Washing...");
@@ -764,10 +765,11 @@ void loop()
                 }
             display.println("remaining.");
             display.display();
+            messageSent = (washMinutes - ((now - cycleStartTime) / 60000));
         }
 
         // OLED STATUS CHECK - CURING
-        if (cureActive == true && now > messageDurationTime)
+        if (cureActive == true && now > messageDurationTime && (cureMinutes - ((now - cycleStartTime) / 60000)) != messageSent)
         {
             sendToOLED();
             display.println("Curing...");
@@ -782,6 +784,7 @@ void loop()
                 }
             display.println("remaining.");
             display.display();
+            messageSent = (cureMinutes - ((now - cycleStartTime) / 60000));
         }
 
         // OLED STATUS CHECK - READY
