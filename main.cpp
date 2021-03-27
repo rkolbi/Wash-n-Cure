@@ -49,7 +49,6 @@ To do:
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-PLATFORMIO.INI FILE CONTENTS:
 ; PlatformIO Project Configuration File
 ;
 ;   Build options: build flags, source filter
@@ -59,17 +58,27 @@ PLATFORMIO.INI FILE CONTENTS:
 ;
 ; Please visit documentation for the other options and examples
 ; https://docs.platformio.org/page/projectconf.html
+
+[platformio]
+default_envs = 
+	esp32dev
+
+
 [env:esp32dev]
 platform = espressif32
 board = esp32dev
 framework = arduino
-lib_deps =
-        http://github.com/scottchiefbaker/ESP-WebOTA
-        http://github.com/waspinator/AccelStepper
-        http://github.com/thomasfredericks/Bounce2
-        http://github.com/adafruit/Adafruit_BusIO
-        http://github.com/adafruit/Adafruit-GFX-Library
-        http://github.com/adafruit/Adafruit_SSD1306
+
+[env]
+upload_speed = 921600
+lib_deps = 
+	http://github.com/tzapu/WiFiManager
+	http://github.com/scottchiefbaker/ESP-WebOTA
+	http://github.com/gin66/FastAccelStepper
+	http://github.com/thomasfredericks/Bounce2
+	http://github.com/adafruit/Adafruit_BusIO
+	http://github.com/adafruit/Adafruit-GFX-Library
+	http://github.com/adafruit/Adafruit_SSD1306
 
 */
 
@@ -103,10 +112,10 @@ Bounce debouncedSW3 = Bounce(); // Bounce instance for SW3
 #define CureDefault 20 // Factory restore value
 #define WashDefault 8 // Factory restore value
 int washSteps = 1000000; // Number of motor step before reversing direction when washing
-int washSpeed = 10000;
-int cureSpeed = 200;
-int accelSpeed = 1000;
-boolean washDirection = false; // Initial wash direction
+int washSpeed = 400;
+int cureSteps = 9999999; 
+int cureSpeed = 6000;
+int stepperAccel = 500;
 boolean washActive = false; // Initial wash state
 boolean cureActive = false; // Initial cure state
 boolean pauseActive = false; // Initial pause state
@@ -120,7 +129,6 @@ unsigned long cycleStartTime = 0; // time trigger for logic of wash and cure cyc
 unsigned long cyclePauseTime = 0; // stores the time mark when the pause state was initiated
 unsigned long cycleElapsedTime = 0; // stores how much time the cycle was run for, before being paused
 unsigned long messageDurationTime = 0; // time trigger for OLED display messages
-unsigned long messageSent = 0;
 
 // EEPROM STORAGE
 #include <EEPROM.h>
@@ -136,10 +144,13 @@ int cureMinutes; // Store the curing timer value
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 
-// STEPER DRIVER SUPPORT - A4988 Step Pin = ESP Pin 33, A4988 Direction Pin = ESP Pin 25 
-#include <AccelStepper.h>
-#define motorEnable 26 // A4988 VDD Pin = ESP Pin 26
-AccelStepper stepper(AccelStepper::DRIVER, 33, 25);
+// STEPER DRIVER SUPPORT - A4988 Step Pin = ESP Pin 33, A4988 Direction Pin = ESP Pin 25, A4988 VDD Pin = ESP Pin 26 
+#include <FastAccelStepper.h>
+const int dirPin = 25;
+const int stepPin = 33;
+const int motorEnable = 26; 
+FastAccelStepperEngine engine = FastAccelStepperEngine();
+FastAccelStepper *stepper = NULL;
 
 // NETWORKING SUPPORT
 #include <WebOTA.h>
@@ -180,10 +191,9 @@ void wash()
     cycleStartTime = now; // Reset the time trigger
     digitalWrite(FAN, HIGH); // Turn on the fan
     digitalWrite(motorEnable, HIGH); // Enable the motor
-    stepper.setSpeed(washSpeed); // Set the motor speed
-    stepper.setCurrentPosition(0); // Set starting position as 0
-    stepper.moveTo(washSteps); // Move stepper x steps
-    washDirection = true; // Motor moves clockwise
+    stepper->setSpeedInUs(washSpeed);
+    stepper->setAcceleration(stepperAccel);
+    stepper->move(washSteps);
 
     sendToOLED();
     display.println("Starting");
@@ -207,8 +217,9 @@ void cure()
     digitalWrite(FAN, HIGH); // Turn on the fan
     digitalWrite(motorEnable, HIGH); // Enable the motor
     digitalWrite(UVLED, HIGH); // Turn on the UV lamp
-    stepper.setSpeed(cureSpeed); // Set the motor speed
-    stepper.runSpeed(); // Start the motor
+    stepper->setSpeedInUs(cureSpeed);
+    stepper->setAcceleration(stepperAccel);
+    stepper->move(cureSteps);
 
     sendToOLED();
     display.println("Starting");
@@ -224,6 +235,7 @@ void StopAll()
 {
     digitalWrite(FAN, LOW);
     digitalWrite(UVLED, LOW);
+    stepper->stopMove();
     digitalWrite(motorEnable, LOW);
     sendToOLED();
     if (cureActive == true)
@@ -257,6 +269,7 @@ void cyclePause()
         cycleElapsedTime = now - cycleStartTime; // if unpaused, cycleStartTime should = now - cycleElapsedTime 
         digitalWrite(FAN, LOW);
         digitalWrite(UVLED, LOW);
+        stepper->stopMove();
         digitalWrite(motorEnable, LOW);
         Serial.println(" Paused.");
     }
@@ -272,18 +285,18 @@ void cycleUnPause()
         {
             digitalWrite(FAN, HIGH); // Turn on the fan
             digitalWrite(motorEnable, HIGH); // Enable the motor
-            stepper.setSpeed(washSpeed); // Set the motor speed
-            stepper.setCurrentPosition(0); // Set starting position as 0
-            stepper.moveTo(washSteps); // Move stepper x steps
-            washDirection = true; // Motor moves clockwise
+            stepper->setSpeedInUs(washSpeed);
+            stepper->setAcceleration(stepperAccel);
+            stepper->move(washSteps);
         }
         else
         {
             digitalWrite(FAN, HIGH); // Turn on the fan
             digitalWrite(motorEnable, HIGH); // Enable the motor
             digitalWrite(UVLED, HIGH); // Turn on the UV lamp
-            stepper.setSpeed(cureSpeed); // Set the motor speed
-            stepper.runSpeed(); // Start the motor
+            stepper->setSpeedInUs(cureSpeed);
+            stepper->setAcceleration(stepperAccel);
+            stepper->move(cureSteps);
         }
         if (washActive == true)
             Serial.print("Wash ");
@@ -630,15 +643,18 @@ void setup()
 
     webota.init(777, "/update"); // Setup web over-the-air update port and directory
 
-    // SET UP STEPPER CONTROL
-    stepper.setMaxSpeed(washSpeed); // Set max stepper speed to 8000
-    stepper.setAcceleration(accelSpeed); // Set stepper acceleration to 100
-
     // DEFINE GPIO FUNCTIONS
     pinMode(PROX, INPUT); // Set PROX pin as an input
 
     pinMode(motorEnable, OUTPUT); // Set motorEnable pin as an output
     digitalWrite(motorEnable, LOW); // Turn motor off
+    pinMode(stepPin, OUTPUT);
+	pinMode(dirPin, OUTPUT);
+    engine.init();
+  	stepper = engine.stepperConnectToPin(stepPin);
+	stepper->setDirectionPin(dirPin);
+    stepper->setAutoEnable(true);
+
 
     pinMode(UVLED, OUTPUT); // Set UVLED pin as an output
     digitalWrite(UVLED, LOW); // ! ! ! NEVER SET THIS HIGH ! MOSFET DAMAGE WILL OCCUR ! ! !
@@ -716,7 +732,7 @@ void loop()
         webota.handle();
 
     // RUN THE WEB SERVER
-    if (washActive == false || (washActive == true && pauseActive == true))
+    //if (washActive == false || (washActive == true && pauseActive == true))
         server.handleClient();
 
     // CHECK IF PAUSED
@@ -737,7 +753,7 @@ void loop()
     else
     {
         // OLED STATUS CHECK - WASHING
-        if (washActive == true && now > messageDurationTime && (washMinutes - ((now - cycleStartTime) / 60000)) != messageSent)
+        if (washActive == true && now > messageDurationTime)
         {
             sendToOLED();
             display.println("Washing...");
@@ -752,11 +768,10 @@ void loop()
                 }
             display.println("remaining.");
             display.display();
-            messageSent = (washMinutes - ((now - cycleStartTime) / 60000));
         }
 
         // OLED STATUS CHECK - CURING
-        if (cureActive == true && now > messageDurationTime && (cureMinutes - ((now - cycleStartTime) / 60000)) != messageSent)
+        if (cureActive == true && now > messageDurationTime)
         {
             sendToOLED();
             display.println("Curing...");
@@ -771,7 +786,6 @@ void loop()
                 }
             display.println("remaining.");
             display.display();
-            messageSent = (cureMinutes - ((now - cycleStartTime) / 60000));
         }
 
         // OLED STATUS CHECK - READY
@@ -792,38 +806,33 @@ void loop()
             cyclePause();
         }
 
-        // STEPPER MOTOR CHECK - IF CURING, KEEP STEPPER MOVING
-        if (cureActive == true)
-        {
-            stepper.runSpeed();
-            if ((now - cycleStartTime) > (cureMinutes * 60000)) // CURE CYCLE CHECK
-                StopAll();
-        
-        }
-
         // STEPPER MOTOR CHECK - IF WASHING, KEEP STEPPER MOVING
         if (washActive == true)
         {
-            stepper.run();
-
-            // STEPPER MOTOR CHECK - IF WASHING, CHECK STEPS TO GO AND REVERSE DIRECTION IF STEPS COMPLETED
-            if (stepper.distanceToGo() == 0)
+            if ((now - cycleStartTime) > (cureMinutes * 60000)) // CURE CYCLE CHECK
+                StopAll();
+            else
             {
-                stepper.setCurrentPosition(0); // Set starting position as 0
-                Serial.println("Changing stepper direction.");
-                if (washDirection == true)
+                if (!stepper->isRunning())
                 {
-                    stepper.moveTo((washSteps * -1)); // Move stepper x steps
-                    washDirection = false;
-                }
-                else
-                {
-                    stepper.moveTo(washSteps); // Move stepper x steps
-                    washDirection = true;
+                    washSteps = washSteps * -1;
+                    stepper->move(washSteps);
                 }
             }
-            if ((now - cycleStartTime) > (washMinutes * 60000)) // WASH CYCLE CHECK
+        }
+
+        // STEPPER MOTOR CHECK - IF CURING, KEEP STEPPER MOVING
+        if (cureActive == true)
+        {
+            if ((now - cycleStartTime) > (cureMinutes * 60000)) // CURE CYCLE CHECK
                 StopAll();
+            else
+            {
+                if (!stepper->isRunning())
+                {
+                    stepper->move(cureSteps);
+                }
+            }
         }
     }
 
