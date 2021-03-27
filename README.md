@@ -1,7 +1,5 @@
-/*
-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//// Wash-n-Cure Rev 0.8.0 (ALPHA)
+//// Wash-n-Cure Rev 0.9.2 (ALPHA)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 -WiFi manager installed. OLED will display current IP for 10 seconds upon boot/reboot.
 
@@ -48,27 +46,3 @@ To do:
     0 - Stepper motion control (cure)
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
-PLATFORMIO.INI FILE CONTENTS:
-; PlatformIO Project Configuration File
-;
-;   Build options: build flags, source filter
-;   Upload options: custom upload port, speed and extra flags
-;   Library options: dependencies, extra library storages
-;   Advanced options: extra scripting
-;
-; Please visit documentation for the other options and examples
-; https://docs.platformio.org/page/projectconf.html
-[env:esp32dev]
-platform = espressif32
-board = esp32dev
-framework = arduino
-lib_deps =
-        http://github.com/scottchiefbaker/ESP-WebOTA
-        http://github.com/waspinator/AccelStepper
-        http://github.com/thomasfredericks/Bounce2
-        http://github.com/adafruit/Adafruit_BusIO
-        http://github.com/adafruit/Adafruit-GFX-Library
-        http://github.com/adafruit/Adafruit_SSD1306
-
-*/
