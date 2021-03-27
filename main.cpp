@@ -1,7 +1,7 @@
 /*
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//// Wash-n-Cure Rev 0.8.0 (ALPHA)
+//// Wash-n-Cure Rev 0.9.2 (ALPHA)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 -WiFi manager installed. OLED will display current IP for 10 seconds upon boot/reboot.
 
@@ -691,7 +691,7 @@ void setup()
 
     // Show version and IP on OLED
     sendToOLED();
-    display.println("WnC 0.8.0");
+    display.println("WnC 9.2");
     display.println(WiFi.localIP());
     display.display();
     messageDurationTime = now + 10000;
