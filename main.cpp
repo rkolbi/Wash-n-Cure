@@ -807,33 +807,23 @@ void loop()
         }
 
         // STEPPER MOTOR CHECK - IF WASHING, KEEP STEPPER MOVING
-        if (washActive == true)
+        if (washActive == true && ((now - cycleStartTime) > (washMinutes * 60000)))
         {
-            if ((now - cycleStartTime) > (cureMinutes * 60000)) // CURE CYCLE CHECK
-                StopAll();
-            else
-            {
-                if (!stepper->isRunning())
-                {
-                    washSteps = washSteps * -1;
-                    stepper->move(washSteps);
-                }
-            }
+            StopAll();
+        }
+        if (washActive == true && !stepper->isRunning())
+        {
+            washSteps = washSteps * -1;
+            stepper->move(washSteps);
         }
 
         // STEPPER MOTOR CHECK - IF CURING, KEEP STEPPER MOVING
-        if (cureActive == true)
+        if (cureActive == true && ((now - cycleStartTime) > (cureMinutes * 60000)))
         {
-            if ((now - cycleStartTime) > (cureMinutes * 60000)) // CURE CYCLE CHECK
-                StopAll();
-            else
-            {
-                if (!stepper->isRunning())
-                {
-                    stepper->move(cureSteps);
-                }
-            }
+            StopAll();
         }
+        if (cureActive == true && (!stepper->isRunning())) // CURE CYCLE CHECK
+                    stepper->move(cureSteps);
     }
 
  
