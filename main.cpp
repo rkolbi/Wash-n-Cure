@@ -26,14 +26,6 @@
         -SW1 will unpause
         -SW2 will stopall
 
--Wash and Cure functins use different stepper motor controls.
--Cure uses the "stepper.setSpeed(500)" and requires "stepper.runSpeed()" to keep moving - yeilding a
- constants turning motor.
--Wash uses "stepper.moveTo(washSteps)", steps to "int washSteps = 2000;", and requires
- "stepper.run();" to keep moving until the steps are complete - allowing the motor to have directional
- change. The directional change occurs from polling "stepper.distanceToGo() == 0", then the code can
- take 'washSteps * -1' and restart the process - now running to the negative steps (turning the other way).
-
 
 To do:
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -44,8 +36,8 @@ To do:
     1 - Time management from button
     1 - Pause function from web interface
     1 - Pause function from button
-    0 - Stepper motion control (wash)
-    0 - Stepper motion control (cure)
+    1 - Stepper motion control (wash)
+    1 - Stepper motion control (cure)
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
