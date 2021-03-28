@@ -1,7 +1,7 @@
 /*
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//// Wash-n-Cure Rev 0.9.2 (ALPHA)
+//// Wash-n-Cure Rev 0.9.3 (ALPHA)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 -WiFi manager installed. OLED will display current IP for 10 seconds upon boot/reboot.
 
@@ -104,10 +104,13 @@ Bounce debouncedSW3 = Bounce(); // Bounce instance for SW3
 #define CureDefault 20 // Factory restore value
 #define WashDefault 8 // Factory restore value
 int washSteps = 240000; // Number of motor step before reversing direction when washing
-int washSpeed = 400;
-int cureSteps = 9999999; 
-int cureSpeed = 6000;
-int stepperAccel = 500;
+int washSpeed = 400; // Speed for wash cycle - no microstep jumpers installed
+int cureSteps = 9999999; // High number of steps, no need to reverse
+int cureSpeed = 6000; // Speed for cure cycle - no microstep jumpers installed
+int stepperAccel = 500; // How quick to come up to speed
+/* from FastAccelStepper github: In one setup, operating A4988 without microsteps has led
+to erratic behaviour at some specific low (erratic means step forward/backward, while DIR is
+kept low). No issue with 16 microstep. */
 boolean washActive = false; // Initial wash state
 boolean cureActive = false; // Initial cure state
 boolean pauseActive = false; // Initial pause state
@@ -135,12 +138,8 @@ int cureMinutes; // Store the curing timer value
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
-
 // STEPER DRIVER SUPPORT - A4988 Step Pin = ESP Pin 33, A4988 Direction Pin = ESP Pin 25, A4988 VDD Pin = ESP Pin 26 
 #include <FastAccelStepper.h>
-/* In one setup, operating A4988 without microsteps has led to erratic behaviour at some specific low 
-(erratic means step forward/backward, while DIR is kept low). No issue with 16 microstep. 
-*/
 const int dirPin = 25;
 const int stepPin = 33;
 const int motorEnable = 26; 
@@ -607,11 +606,10 @@ void setup()
     // reset settings - wipe credentials for testing
     // wm.resetSettings();
 
-    // Automatically connect using saved credentials,
-    // if connection fails, it starts an access point with the specified name ( "Wash-n-Cure"),
-    // if empty will auto generate SSID, if password is blank it will be anonymous AP
-    // (wm.autoConnect())
-    // then goes into a blocking loop awaiting configuration and will return success result
+    /* Automatically connect using saved credentials, if connection fails, it starts an access point
+    with the specified name ( "Wash-n-Cure"), if empty will auto generate SSID, if password is blank
+    it will be anonymous AP (wm.autoConnect()) then goes into a blocking loop awaiting configuration
+    and will return success result */
 
     bool res;
     // res = wm.autoConnect(); // auto generated AP name from chipid
@@ -638,9 +636,9 @@ void setup()
 
     webota.init(777, "/update"); // Setup web over-the-air update port and directory
 
-    // DEFINE GPIO FUNCTIONS
+    // SET UP GPIO
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     pinMode(PROX, INPUT); // Set PROX pin as an input
-
     pinMode(motorEnable, OUTPUT); // Set motorEnable pin as an output
     digitalWrite(motorEnable, LOW); // Turn motor off
     pinMode(stepPin, OUTPUT);
@@ -649,7 +647,6 @@ void setup()
   	stepper = engine.stepperConnectToPin(stepPin);
 	stepper->setDirectionPin(dirPin);
     stepper->setAutoEnable(true);
-
 
     pinMode(UVLED, OUTPUT); // Set UVLED pin as an output
     digitalWrite(UVLED, LOW); // ! ! ! NEVER SET THIS HIGH ! MOSFET DAMAGE WILL OCCUR ! ! !
@@ -686,7 +683,7 @@ void setup()
 
     // Show version and IP on OLED
     sendToOLED();
-    display.println("WnC 0.9.2");
+    display.println("WnC 0.9.3");
     display.println(WiFi.localIP());
     display.display();
     messageDurationTime = now + 10000;
@@ -709,6 +706,7 @@ void setup()
             Serial.print(".");
     }
 
+    // DISPLAY FINAL STARTUP MESSAGE
     Serial.println(" ");
     Serial.print("Initialization time: ");
     Serial.println(now);
