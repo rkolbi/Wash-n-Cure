@@ -1,7 +1,7 @@
 # Wash-n-Cure
 ![Wash-n-Cure Web Interface](/WnC.jpg)
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=  
-//// Wash-n-Cure Rev 0.9.3
+//// Wash-n-Cure Rev 0.9.3  
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=  
 -WiFi manager installed. OLED will display current IP for 10 seconds upon boot/reboot.  
   
