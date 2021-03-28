@@ -111,7 +111,7 @@ Bounce debouncedSW3 = Bounce(); // Bounce instance for SW3
 // WASH AND CURE VARIABLES
 #define CureDefault 20 // Factory restore value
 #define WashDefault 8 // Factory restore value
-int washSteps = 1000000; // Number of motor step before reversing direction when washing
+int washSteps = 240000; // Number of motor step before reversing direction when washing
 int washSpeed = 400;
 int cureSteps = 9999999; 
 int cureSpeed = 6000;
@@ -146,6 +146,9 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 // STEPER DRIVER SUPPORT - A4988 Step Pin = ESP Pin 33, A4988 Direction Pin = ESP Pin 25, A4988 VDD Pin = ESP Pin 26 
 #include <FastAccelStepper.h>
+/* In one setup, operating A4988 without microsteps has led to erratic behaviour at some specific low 
+(erratic means step forward/backward, while DIR is kept low). No issue with 16 microstep. 
+*/
 const int dirPin = 25;
 const int stepPin = 33;
 const int motorEnable = 26; 
@@ -573,7 +576,7 @@ void handleEepromSave()
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 void setup()
 {
-   disableCore0WDT(); // Stop the watchdog timer
+    disableCore0WDT(); // Stop the watchdog timer
 
     // SET UP SERIAL PORT
     Serial.begin(9600); // Set board's serial speed for terminal communcation
@@ -691,7 +694,7 @@ void setup()
 
     // Show version and IP on OLED
     sendToOLED();
-    display.println("WnC 9.2");
+    display.println("WnC 0.9.2");
     display.println(WiFi.localIP());
     display.display();
     messageDurationTime = now + 10000;
