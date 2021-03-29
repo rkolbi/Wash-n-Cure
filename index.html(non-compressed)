@@ -1,18 +1,10 @@
-const char webpage[] PROGMEM = R"=====(
 <!DOCTYPE html>
 <html lang="en">
 <head> 
   <meta charset="utf-8"/> 
   <meta name=viewport content='width=400'>
 <style type="text/css">
-body { font-family: Arial; margin: 0; color: #212f3c; }
-a:link { text-decoration: none; color: #ebedef;}
-a:visited { text-decoration: none; color: #ebedef; }
-a:hover { text-decoration: underline; color: #ebedef; }
-a:active { text-decoration: underline; color: #ebedef; }
-.header { padding: 5px; text-align: center; background: #85929e; color: #1c2833; font-size: 20px; }
-.footer { position: fixed; left: 0; bottom: 0; width: 100%; background-color: #85929e; color: #ebedef; text-align: center; }
-.table, th, td { border: 0px solid black; border-collapse: collapse; text-align: center; }
+body{font-family:Arial;margin:0;color:#212f3c}a:link{text-decoration:none;color:#ebedef}a:visited{text-decoration:none;color:#ebedef}a:hover{text-decoration:underline;color:#ebedef}a:active{text-decoration:underline;color:#ebedef}.header{padding:5px;text-align:center;background:#85929e;color:#1c2833;font-size:20px}.footer{position:fixed;left:0;bottom:0;width:100%;background-color:#85929e;color:#ebedef;text-align:center}.table,td,th{border:0 solid #000;border-collapse:collapse;text-align:center}
 </style><body style="text-align:center;"><center><div>
 <div class="header"><big><i><b>Wash & Cure</big></b></i><br><small>Resin printing post processing station control.</small></div><br><br>
 System Status: <span id="status"></span>
@@ -81,4 +73,3 @@ function getData() {
 </center>
 </body>
 </html>
-)=====";
