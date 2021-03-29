@@ -447,11 +447,14 @@ void eepromMenu()
 
 // SERVE THE CONTENTS OF THE INDEX.HTML FILE
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-void handleRoot()
-{
-    String s = webpage;
-    server.send(200, "text/html", s);
+void handleRoot() {
+    const char* dataType = "text/html";
+    server.sendHeader(F("Content-Encoding"), F("gzip"));
+    server.send_P(200, dataType, (const char*)index_html_gz, index_html_gz_len);
+    //https://www.mischianti.org/2020/10/26/web-server-with-esp8266-and-esp32-byte-array-gzipped-pages-and-spiffs-2/
 }
+
+
 
 // 404 - NOT FOUND WEB RESPONSE
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
