@@ -73,7 +73,6 @@ lib_deps =
 #include <Arduino.h>
 #include <Wire.h>
 #include <Bounce2.h>
-#include "index.html"
 
 // UV, IR, AND SW PINS AND CONTROL
 #define UVLED 32 // PIN:32 UV LED
